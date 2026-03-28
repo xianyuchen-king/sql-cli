@@ -1,0 +1,26 @@
+# Build
+build/
+.gradle/
+!gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# sql-cli local config
+config.yml
+drivers/
+
+# Misc
+*.class
+*.jar
+*.log
