@@ -15,6 +15,7 @@
 ## 特性
 
 - **多数据库支持** — MySQL、Oracle、PostgreSQL、SQL Server、SQLite、达梦等，可通过自定义驱动扩展
+- **交互式 Shell** — REPL 模式支持连接复用、SQL 历史记录、快捷命令
 - **安全保护** — 密码 AES-256-GCM 加密存储、安全级别控制（严格/正常/无）
 - **数据导入导出** — CSV、JSON、SQL INSERT/UPDATE 格式
 - **连接管理** — 保存连接配置，支持分组和标签
@@ -96,6 +97,52 @@ sql-cli meta describe -t users -c mydb
 sql-cli export -t users -c mydb -f csv -o /tmp/users.csv
 ```
 
+## 交互式 Shell（REPL）
+
+对于频繁查询的场景，使用交互式 Shell 模式可复用连接，大幅提升响应速度：
+
+```bash
+# 进入交互式 Shell
+sql-cli shell -c mydb
+
+# 或使用内联参数直接连接
+sql-cli shell --type mysql --host localhost --port 3306 \
+  --user root --password xxx --db testdb
+```
+
+在 Shell 中：
+
+```
+mydb> SELECT * FROM users LIMIT 5;
+| id | name  | email             |
+|----|-------|-------------------|
+| 1  | Alice | alice@example.com |
+...
+
+mydb> \dt                    # 列出所有表
+mydb> \d users               # 查看表结构
+mydb> \format json           # 切换输出格式
+mydb> \c otherdb             # 切换到其他连接
+mydb> exit                   # 退出 Shell
+```
+
+**快捷命令：**
+
+| 命令 | 说明 |
+|------|------|
+| `\dt`, `\tables` | 列出所有表 |
+| `\d <表名>` | 查看表结构 |
+| `\db`, `\databases` | 列出所有数据库 |
+| `\dv`, `\views` | 列出所有视图 |
+| `\c <连接名>` | 切换到其他连接 |
+| `\format [markdown|json|csv]` | 设置输出格式 |
+| `\limit <n>` | 设置行数限制 |
+| `\nolimit` | 取消行数限制 |
+| `\timeout <n>` | 设置查询超时 |
+| `\status` | 显示当前设置 |
+| `\help` | 显示帮助 |
+| `exit`, `quit` | 退出 Shell |
+
 ## 使用示例
 
 ```
@@ -142,10 +189,11 @@ npx skills add xianyuchen-king/sql-cli -g -y
 
 完整列表请运行 `npx skills add xianyuchen-king/sql-cli -g` 查看。
 
-## 新功能 (v1.0.1)
+## 新功能 (v1.0.4)
 
 | 功能 | 命令 |
 |------|------|
+| 交互式 Shell | `sql-cli shell -c mydb` — REPL 模式，连接复用 |
 | 查询计时 | `sql-cli query "SELECT ..." -c mydb` 自动显示耗时 |
 | 查询超时 | `sql-cli query "SELECT ..." -c mydb --timeout 30` |
 | 输出到文件 | `sql-cli query "SELECT ..." -c mydb -o result.csv` |

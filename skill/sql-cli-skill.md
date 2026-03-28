@@ -132,7 +132,70 @@ sql-cli query "SELECT * FROM users" -c mydb -o /tmp/result.csv
 sql-cli query "SELECT 1" --type mysql --host localhost --port 3306 --user root --password xxx --db testdb --driver mysql-connector-j-8.3.0.jar
 ```
 
-### 5. Execute DDL/DML
+### 5. Interactive Shell (REPL)
+
+For frequent queries, use the interactive shell to reuse connections and improve response speed:
+
+```bash
+# Start shell with saved connection
+sql-cli shell -c mydb
+
+# Start shell with direct connection parameters
+sql-cli shell --type mysql --host localhost --port 3306 --user root --password xxx --db testdb
+```
+
+**Slash Commands:**
+
+| Command | Description |
+|---------|-------------|
+| `\dt`, `\tables` | List all tables |
+| `\d <table>` | Describe table structure |
+| `\db`, `\databases` | List all databases |
+| `\dv`, `\views` | List all views |
+| `\c <name>` | Switch to another connection |
+| `\format [markdown\|json\|csv]` | Set output format |
+| `\limit <n>` | Set max rows |
+| `\nolimit` | Disable row limit |
+| `\timeout <n>` | Set query timeout (seconds) |
+| `\status` | Show current settings |
+| `\help` | Show help |
+| `exit`, `quit` | Exit shell |
+
+**Example Shell Session:**
+
+```
+$ sql-cli shell -c mydb
+
+sql-cli shell v1.0.4
+Connected to: mysql://localhost:3306/testdb
+Type '\help' for available commands, 'exit' or Ctrl+D to exit.
+
+mydb> SELECT * FROM users LIMIT 5;
+| id | name  | email             |
+|----|-------|-------------------|
+| 1  | Alice | alice@example.com |
+
+5 rows in set (0.02s)
+
+mydb> \d users
+Table: users
+...table structure...
+
+mydb> \c otherdb
+Switched to connection: otherdb
+Connected to: mysql://localhost:3306/otherdb
+
+otherdb> exit
+Connection closed. Bye!
+```
+
+**Features:**
+- Connection reuse across queries (faster response)
+- SQL history (up/down arrow keys)
+- Multi-line SQL support (statements end with `;`)
+- Auto row limit and query timeout
+
+### 6. Execute DDL/DML
 ```bash
 # Safe operations
 sql-cli exec "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR(50))" -c mydb
@@ -213,7 +276,7 @@ sql-cli conn types                    # List registered database types
 
 ## Real-World Example
 
-Complete workflow for connecting to a MySQL database and querying organization data:
+Complete workflow for connecting to a MySQL database and querying data:
 
 ```bash
 # 1. Install MySQL driver
@@ -221,30 +284,42 @@ sql-cli driver install mysql
 
 # 2. Add connection
 sql-cli conn add \
-  --name "测试环境读写连接" \
+  --name mydb \
   --type mysql \
-  --host dbproxy.diwork.com \
-  --port 12368 \
-  --user ro_all_db \
+  --host localhost \
+  --port 3306 \
+  --user root \
   --password xxxxxx \
-  --db iuap_apdoc_basedoc \
+  --db testdb \
   --driver mysql-connector-j-8.3.0.jar
 
 # 3. Test connection with verbose output
-sql-cli conn test "测试环境读写连接" -v
+sql-cli conn test mydb -v
 
 # 4. Query all databases
-sql-cli query "SHOW DATABASES" -c "测试环境读写连接"
+sql-cli query "SHOW DATABASES" -c mydb
 
 # 5. Describe table structure
-sql-cli meta describe -t org_orgs -c "测试环境读写连接"
+sql-cli meta describe -t users -c mydb
 
 # 6. Query first 10 rows
-sql-cli query "SELECT * FROM org_orgs LIMIT 10" -c "测试环境读写连接"
+sql-cli query "SELECT * FROM users LIMIT 10" -c mydb
 
-# 7. Query with timeout and save to file
-sql-cli query "SELECT * FROM org_orgs WHERE enable=1" -c "测试环境读写连接" --timeout 30 -o /tmp/orgs.csv
+# 7. Interactive shell for multiple queries (connection reuse)
+sql-cli shell -c mydb
+# Then inside shell:
+# mydb> SELECT * FROM users WHERE name LIKE '%test%';
+# mydb> \d users
+# mydb> \c otherdb
+# mydb> exit
 ```
+
+**Interactive Shell Tips:**
+- Use shell mode when running multiple queries in succession (much faster due to connection reuse)
+- Use `\dt` to list tables, `\d <table>` to describe table structure
+- Use `\c <name>` to switch between connections without exiting
+- SQL history is saved to `~/.sql-cli/history` for convenience
+- Multi-line SQL is supported (statements end with `;`)
 
 ## Troubleshooting
 
