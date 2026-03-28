@@ -2,12 +2,12 @@
 
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.org/projects/jdk/21/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Release](https://img.shields.io/github/v/release/cyq/sql-cli?include_prereleases&display_name=tag)](https://github.com/cyq/sql-cli/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/xianyuchen-king/sql-cli?include_prereleases&display_name=tag)](https://github.com/xianyuchen-king/sql-cli/releases)
 ![Status](https://img.shields.io/badge/Status-Beta-orange.svg)
 
 一个用于连接关系型数据库的 CLI 工具，通过 JDBC 驱动支持 MySQL、Oracle、PostgreSQL、SQLite、达梦等数据库。专为 AI 编程助手（如 Claude Code）设计。
 
-> **Beta 测试阶段** — 本项目正在积极开发中，欢迎试用并[提出反馈](https://github.com/cyq/sql-cli/issues/new?template=bug_report.yml)或[功能建议](https://github.com/cyq/sql-cli/issues/new?template=feature_request.yml)！
+> **Beta 测试阶段** — 本项目正在积极开发中，欢迎试用并[提出反馈](https://github.com/xianyuchen-king/sql-cli/issues/new?template=bug_report.yml)或[功能建议](https://github.com/xianyuchen-king/sql-cli/issues/new?template=feature_request.yml)！
 
 [English](README_EN.md) | 中文
 
@@ -29,7 +29,7 @@
 ### 方式一：从源码构建（推荐）
 
 ```bash
-git clone https://github.com/cyq/sql-cli.git
+git clone https://github.com/xianyuchen-king/sql-cli.git
 cd sql-cli
 ./gradlew shadowJar
 ```
@@ -49,7 +49,7 @@ sudo chmod +x /usr/local/bin/sql-cli
 
 ### 方式二：下载预编译版本
 
-前往 [Releases](https://github.com/cyq/sql-cli/releases) 页面下载最新 jar 文件。
+前往 [Releases](https://github.com/xianyuchen-king/sql-cli/releases) 页面下载最新 jar 文件。
 
 ```bash
 # 下载后直接运行
@@ -116,9 +116,9 @@ $ sql-cli query "SELECT id, name, email FROM users LIMIT 5" -c mydb
 
 ## 反馈与建议
 
-- [报告 Bug](https://github.com/cyq/sql-cli/issues/new?template=bug_report.yml)
-- [功能建议](https://github.com/cyq/sql-cli/issues/new?template=feature_request.yml)
-- [讨论区](https://github.com/cyq/sql-cli/discussions)
+- [报告 Bug](https://github.com/xianyuchen-king/sql-cli/issues/new?template=bug_report.yml)
+- [功能建议](https://github.com/xianyuchen-king/sql-cli/issues/new?template=feature_request.yml)
+- [讨论区](https://github.com/xianyuchen-king/sql-cli/discussions)
 
 ## License
 

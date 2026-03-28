@@ -4,9 +4,9 @@
 
 ## 反馈与建议
 
-- **Bug 报告**：[提交 Bug](https://github.com/cyq/sql-cli/issues/new?template=bug_report.yml)，请附上复现步骤和环境信息
-- **功能建议**：[提交建议](https://github.com/cyq/sql-cli/issues/new?template=feature_request.yml)
-- **一般讨论**：[GitHub Discussions](https://github.com/cyq/sql-cli/discussions)
+- **Bug 报告**：[提交 Bug](https://github.com/xianyuchen-king/sql-cli/issues/new?template=bug_report.yml)，请附上复现步骤和环境信息
+- **功能建议**：[提交建议](https://github.com/xianyuchen-king/sql-cli/issues/new?template=feature_request.yml)
+- **一般讨论**：[GitHub Discussions](https://github.com/xianyuchen-king/sql-cli/discussions)
 
 ## 开发环境搭建
 
@@ -18,7 +18,7 @@
 ### 构建
 
 ```bash
-git clone https://github.com/cyq/sql-cli.git
+git clone https://github.com/xianyuchen-king/sql-cli.git
 cd sql-cli
 ./gradlew shadowJar    # 构建 fat jar
 ./gradlew test         # 运行测试

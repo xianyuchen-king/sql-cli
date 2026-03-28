@@ -22,7 +22,7 @@ node_modules/
 Thumbs.db
 
 # sql-cli local config
-config.yml
+/config.yml
 drivers/
 
 # Claude Code

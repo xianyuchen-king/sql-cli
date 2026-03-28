@@ -2,12 +2,12 @@
 
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.org/projects/jdk/21/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Release](https://img.shields.io/github/v/release/cyq/sql-cli?include_prereleases&display_name=tag)](https://github.com/cyq/sql-cli/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/xianyuchen-king/sql-cli?include_prereleases&display_name=tag)](https://github.com/xianyuchen-king/sql-cli/releases)
 ![Status](https://img.shields.io/badge/Status-Beta-orange.svg)
 
 A CLI tool for connecting to relational databases via JDBC drivers. Supports MySQL, Oracle, PostgreSQL, SQLite, DM, and more. Designed for AI coding agents like Claude Code.
 
-> **Beta** — This project is under active development. Feedback and [bug reports](https://github.com/cyq/sql-cli/issues/new?template=bug_report.yml) are welcome!
+> **Beta** — This project is under active development. Feedback and [bug reports](https://github.com/xianyuchen-king/sql-cli/issues/new?template=bug_report.yml) are welcome!
 
 English | [中文](README.md)
 
@@ -29,7 +29,7 @@ English | [中文](README.md)
 ### Option 1: Build from source (recommended)
 
 ```bash
-git clone https://github.com/cyq/sql-cli.git
+git clone https://github.com/xianyuchen-king/sql-cli.git
 cd sql-cli
 ./gradlew shadowJar
 ```
@@ -47,7 +47,7 @@ sudo chmod +x /usr/local/bin/sql-cli
 
 ### Option 2: Download pre-built jar
 
-Visit the [Releases](https://github.com/cyq/sql-cli/releases) page to download the latest jar.
+Visit the [Releases](https://github.com/xianyuchen-king/sql-cli/releases) page to download the latest jar.
 
 ```bash
 java -jar sql-cli.jar --help
@@ -113,9 +113,9 @@ Contributions, bug reports, and feature requests are welcome! See [Contributing 
 
 ## Feedback
 
-- [Report a Bug](https://github.com/cyq/sql-cli/issues/new?template=bug_report.yml)
-- [Request a Feature](https://github.com/cyq/sql-cli/issues/new?template=feature_request.yml)
-- [Discussions](https://github.com/cyq/sql-cli/discussions)
+- [Report a Bug](https://github.com/xianyuchen-king/sql-cli/issues/new?template=bug_report.yml)
+- [Request a Feature](https://github.com/xianyuchen-king/sql-cli/issues/new?template=feature_request.yml)
+- [Discussions](https://github.com/xianyuchen-king/sql-cli/discussions)
 
 ## License
 

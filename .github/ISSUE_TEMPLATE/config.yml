@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion / 讨论
+    url: https://github.com/xianyuchen-king/sql-cli/discussions
+    about: 提问、分享使用经验、或参与一般性讨论 / Ask questions, share experiences, or join general discussions
