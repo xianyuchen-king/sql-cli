@@ -1,6 +1,7 @@
 # Build
 build/
 .gradle/
+jar/
 !gradle-wrapper.jar
 
 # npm

@@ -44,6 +44,9 @@ public class ConnUpdateCommand implements Runnable {
     @Option(names = {"--group"}, description = "Connection group")
     private String group;
 
+        @Option(names = {"--rename"}, description = "New connection name")
+    private String newName;
+
     @Option(names = {"--safety-level"}, description = "Safety level: strict/normal/none")
     private String safetyLevel;
 
@@ -78,7 +81,22 @@ public class ConnUpdateCommand implements Runnable {
             }
         }
 
-        cm.save(config);
-        System.out.println("[DONE] Connection '" + name + "' updated.");
+        // Handle rename
+        if (newName != null && !newName.equals(name)) {
+            // Check if new name already exists
+            if (config.getConnection(newName) != null) {
+                System.err.println("[ERROR] Connection '" + newName + "' already exists.");
+                return;
+            }
+            // Remove old connection first, then update name and add back
+            config.getConnections().removeIf(c -> c.getName().equals(name));
+            cc.setName(newName);
+            config.getConnections().add(cc);
+            cm.save(config);
+            System.out.println("[DONE] Connection '" + name + "' renamed to '" + newName + "'.");
+        } else {
+            cm.save(config);
+            System.out.println("[DONE] Connection '" + name + "' updated.");
+        }
     }
 }

@@ -40,15 +40,15 @@ public class DriverLoader {
             }
 
             URL jarUrl = jarFile.toURI().toURL();
-            try (URLClassLoader classLoader = new URLClassLoader(
+            // Don't use try-with-resources - classloader must stay open for driver to load internal classes
+            URLClassLoader classLoader = new URLClassLoader(
                     new URL[]{jarUrl},
-                    DriverLoader.class.getClassLoader())) {
-                Class<?> clazz = Class.forName(driverClassName, true, classLoader);
-                Driver driver = (Driver) clazz.getDeclaredConstructor().newInstance();
-                loadedDrivers.put(cacheKey, driver);
-                log.debug("Loaded driver: {} from {}", driverClassName, jarFile);
-                return driver;
-            }
+                    DriverLoader.class.getClassLoader());
+            Class<?> clazz = Class.forName(driverClassName, true, classLoader);
+            Driver driver = (Driver) clazz.getDeclaredConstructor().newInstance();
+            loadedDrivers.put(cacheKey, driver);
+            log.debug("Loaded driver: {} from {}", driverClassName, jarFile);
+            return driver;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load driver: " + driverClassName
                     + " from " + driverJar, e);

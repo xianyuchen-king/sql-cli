@@ -57,7 +57,8 @@ public class ConnAddCommand implements Runnable {
         ConfigManager cm = new ConfigManager();
         AppConfig config = cm.load();
 
-        if (nonInteractive) {
+        // Auto-detect non-interactive mode if required params are provided
+        if (nonInteractive || (name != null && type != null)) {
             addNonInteractive(cm, config);
         } else {
             addInteractive(cm, config);

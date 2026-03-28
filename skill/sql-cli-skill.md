@@ -121,7 +121,11 @@ sql-cli conn add --name mydb --type generic --url "jdbc:xxx://host:port/db" --us
 
 ### 3. Test a connection
 ```bash
+# Basic test
 sql-cli conn test mydb
+
+# Verbose test (shows detailed info and actual JDBC URL)
+sql-cli conn test mydb -v
 ```
 
 ### 4. Execute queries
@@ -158,12 +162,18 @@ sql-cli exec "TRUNCATE TABLE temp_data" -c mydb --confirm
 
 ### 6. Browse metadata
 ```bash
-sql-cli meta dbs -c mydb
-sql-cli meta tables -c mydb
-sql-cli meta tables -c mydb -d testdb
-sql-cli meta columns -t users -c mydb
-sql-cli meta indexes -t users -c mydb
-sql-cli meta views -c mydb
+# List all databases
+sql-cli query "SHOW DATABASES" -c mydb
+
+# List tables (specify database if not in config)
+sql-cli query "SHOW TABLES FROM database_name" -c mydb
+
+# Show table structure
+sql-cli query "DESCRIBE table_name" -c mydb
+sql-cli query "SHOW COLUMNS FROM table_name" -c mydb
+
+# Show CREATE TABLE statement
+sql-cli query "SHOW CREATE TABLE table_name" -c mydb
 ```
 
 ### 7. Export data
@@ -206,6 +216,83 @@ sql-cli conn remove mydb              # Remove connection
 sql-cli conn group list               # List groups
 sql-cli conn tag list                 # List tags
 sql-cli conn types                    # List registered database types
+```
+
+## Real-World Example
+
+Complete workflow for connecting to a MySQL database and querying organization data:
+
+```bash
+# 1. Install MySQL driver
+sql-cli driver install mysql
+
+# 2. Add connection
+sql-cli conn add \
+  --name "测试环境读写连接" \
+  --type mysql \
+  --host dbproxy.diwork.com \
+  --port 12368 \
+  --user ro_all_db \
+  --password xxxxxx \
+  --db iuap_apdoc_basedoc \
+  --driver mysql-connector-j-8.3.0.jar
+
+# 3. Test connection with verbose output
+sql-cli conn test "测试环境读写连接" -v
+
+# 4. Query all databases
+sql-cli query "SHOW DATABASES" -c "测试环境读写连接"
+
+# 5. Query table structure
+sql-cli query "DESCRIBE org_orgs" -c "测试环境读写连接"
+
+# 6. Query first 10 rows
+sql-cli query "SELECT * FROM org_orgs LIMIT 10" -c "测试环境读写连接"
+
+# 7. Query specific columns
+sql-cli query "SELECT id, code, name, parentid, level FROM org_orgs WHERE enable=1 LIMIT 5" -c "测试环境读写连接"
+```
+
+## Troubleshooting
+
+### Connection Issues
+
+**"Unknown database" error**
+```bash
+# Solution 1: Test without database first
+sql-cli conn update mydb --db ""
+sql-cli conn test mydb
+
+# Then list databases and find correct one
+sql-cli query "SHOW DATABASES" -c mydb
+
+# Solution 2: Update to correct database name
+sql-cli conn update mydb --db correct_db_name
+```
+
+**"Communications link failure"**
+```bash
+# Check network connectivity
+ping <host>
+telnet <host> <port>
+
+# Add connection parameters for MySQL
+sql-cli conn add --name mydb ... --param useSSL=false --param allowPublicKeyRetrieval=true
+```
+
+**"Driver not found" error**
+```bash
+# Check installed drivers
+sql-cli driver list
+
+# Install missing driver
+sql-cli driver install mysql
+```
+
+### Connection Test Shows "NOT reachable" but verbose shows nothing
+```bash
+# Always use -v for verbose error details
+sql-cli conn test mydb -v
 ```
 
 ## Safety Rules
