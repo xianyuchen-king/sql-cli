@@ -3,7 +3,7 @@ package com.sqlcli;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "sql-cli", mixinStandardHelpOptions = true, version = "sql-cli 1.0.0-SNAPSHOT",
+@Command(name = "sql-cli", mixinStandardHelpOptions = true, version = "sql-cli 1.0.1",
         subcommands = {
                 com.sqlcli.cli.InitCommand.class,
                 com.sqlcli.cli.ConnCommand.class,
