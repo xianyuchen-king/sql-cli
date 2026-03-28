@@ -25,6 +25,16 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew shadowJar
 
+    - name: Run tests
+      run: ./gradlew test
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-report
+        path: build/reports/tests/
+
     - name: Upload JAR
       uses: actions/upload-artifact@v4
       with:
@@ -35,6 +45,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
 
@@ -42,15 +54,12 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: sql-cli-jar
-        path: jar/
+        path: ./
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
       with:
-        node-version: '20'
-        registry-url: 'https://registry.npmjs.org'
-
-    - name: Publish to npm
-      run: npm publish --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        generate_release_notes: true
+        prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-alpha') || contains(github.ref, '-rc') }}
+        files: |
+          sql-cli.jar

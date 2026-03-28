@@ -1,0 +1,83 @@
+name: Bug Report
+description: 报告一个 Bug / Report a bug
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你报告问题！请尽量提供详细信息。
+        Thanks for reporting! Please provide as much detail as possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述 / Bug Description
+      description: 清楚地描述遇到了什么问题 / A clear description of what went wrong
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to Reproduce
+      description: |
+        1. 运行 '...'
+        2. 输入 '...'
+        3. 看到错误 '...'
+      placeholder: |
+        1. sql-cli conn add ...
+        2. sql-cli query "..." -c mydb
+        3. Error: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为 / Expected Behavior
+      description: 你期望发生什么 / What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为 / Actual Behavior
+      description: 实际发生了什么 / What actually happened
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志/错误输出 / Logs or Error Output
+      description: 请粘贴相关的错误信息（使用 `-v` 参数可获取详细日志）/ Paste relevant error output (use `-v` flag for verbose logs)
+      render: shell
+
+  - type: input
+    id: version
+    attributes:
+      label: sql-cli 版本 / Version
+      description: 运行 `sql-cli --version` 获取
+      placeholder: "1.0.0-SNAPSHOT"
+
+  - type: input
+    id: java_version
+    attributes:
+      label: Java 版本 / Java Version
+      description: 运行 `java -version` 获取
+      placeholder: "openjdk 21.0.x"
+
+  - type: input
+    id: db_type
+    attributes:
+      label: 数据库类型及版本 / Database Type & Version
+      placeholder: "MySQL 8.0"
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统 / OS
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other

@@ -1,5 +1,6 @@
 # Build
 build/
+bin/
 .gradle/
 jar/
 !gradle-wrapper.jar
@@ -23,6 +24,12 @@ Thumbs.db
 # sql-cli local config
 config.yml
 drivers/
+
+# Claude Code
+.claude/
+
+# Superpowers docs
+docs/superpowers/
 
 # Misc
 *.class
