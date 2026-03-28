@@ -1,6 +1,6 @@
 ---
 name: sql-cli
-description: Database CLI tool for connecting to relational databases (MySQL, Oracle, PostgreSQL, SQLite, etc.) via JDBC. Provides query execution, metadata browsing, data import/export, and connection management.
+description: Database CLI tool for connecting to relational databases (MySQL, Oracle, PostgreSQL, SQLite, SQL Server, etc.) via JDBC. Provides query execution, metadata browsing, data import/export, and connection management.
 type: user
 ---
 
@@ -8,7 +8,7 @@ type: user
 
 ## Prerequisites
 
-- **Java 17+** must be installed and on PATH. sql-cli checks this on startup.
+- **Java 21+** must be installed and on PATH. sql-cli checks this on startup.
 - **Node.js 16+** required for npm installation (not needed at runtime).
 
 ## Installation & Setup
@@ -30,7 +30,7 @@ After installation, `~/.sql-cli/` directory is auto-created with `drivers/` subd
    cd sql-cli
    ./gradlew shadowJar
    ```
-2. Run directly or create a startup script:
+2. Run directly:
    ```bash
    java -jar build/libs/sql-cli.jar --help
    ```
@@ -39,10 +39,7 @@ After installation, `~/.sql-cli/` directory is auto-created with `drivers/` subd
 
 ### Uninstall
 ```bash
-# npm uninstall
 npm uninstall -g @black-cyq/sql-cli
-
-# Remove config and drivers (optional)
 sql-cli uninstall --confirm    # Removes ~/.sql-cli/ entirely
 ```
 
@@ -59,6 +56,7 @@ sql-cli driver install mysql
 sql-cli driver install oracle
 sql-cli driver install postgresql
 sql-cli driver install sqlite
+sql-cli driver install mssql
 
 # List installed drivers
 sql-cli driver list
@@ -86,25 +84,20 @@ sql-cli update check    # Check for new version
 sql-cli update          # Update to latest version
 ```
 
-### Uninstall
-```bash
-sql-cli uninstall --confirm    # Removes ~/.sql-cli/ entirely
-```
-
 ## Usage
 
-### 1. First, check existing connections
+### 1. Check existing connections
 ```bash
 sql-cli conn list
 ```
 
-### 2. Add a connection (interactive or non-interactive)
+### 2. Add a connection
 ```bash
-# Interactive
-sql-cli conn add
-
 # Non-interactive
 sql-cli conn add --name mydb --type mysql --host localhost --port 3306 --user root --password xxx --db testdb --driver mysql-connector-j-8.3.0.jar
+
+# SQL Server
+sql-cli conn add --name mssqldb --type mssql --host localhost --port 1433 --user sa --password xxx --db mydb --driver mssql-jdbc-12.4.2.jre11.jar
 
 # Direct JDBC URL (for uncommon databases)
 sql-cli conn add --name mydb --type generic --url "jdbc:xxx://host:port/db" --user admin --password xxx --driver MyDriver.jar --driver-class com.example.Driver
@@ -112,16 +105,13 @@ sql-cli conn add --name mydb --type generic --url "jdbc:xxx://host:port/db" --us
 
 ### 3. Test a connection
 ```bash
-# Basic test
-sql-cli conn test mydb
-
-# Verbose test (shows detailed info and actual JDBC URL)
-sql-cli conn test mydb -v
+sql-cli conn test mydb        # Basic test
+sql-cli conn test mydb -v     # Verbose (shows JDBC URL and details)
 ```
 
 ### 4. Execute queries
 ```bash
-# SELECT query (returns Markdown table by default)
+# SELECT query (returns Markdown table by default, with timing)
 sql-cli query "SELECT * FROM users LIMIT 10" -c mydb
 
 # Change output format
@@ -132,20 +122,26 @@ sql-cli query "SELECT * FROM users" -c mydb -f csv
 sql-cli query "SELECT * FROM users" -c mydb --limit 100
 sql-cli query "SELECT * FROM users" -c mydb --no-limit
 
+# Query timeout (seconds)
+sql-cli query "SELECT * FROM large_table" -c mydb --timeout 30
+
+# Save results to file
+sql-cli query "SELECT * FROM users" -c mydb -o /tmp/result.csv
+
 # Direct connection (without saved config)
 sql-cli query "SELECT 1" --type mysql --host localhost --port 3306 --user root --password xxx --db testdb --driver mysql-connector-j-8.3.0.jar
 ```
 
 ### 5. Execute DDL/DML
 ```bash
-# Safe operations (CREATE, ALTER, INSERT with WHERE)
+# Safe operations
 sql-cli exec "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR(50))" -c mydb
 
 # Dangerous operations require --confirm
 sql-cli exec "DROP TABLE temp_data" -c mydb --confirm
 sql-cli exec "TRUNCATE TABLE temp_data" -c mydb --confirm
 
-# BLOCKED operations (will fail):
+# BLOCKED operations (will always fail):
 # - DROP DATABASE / DROP SCHEMA
 # - DELETE without WHERE
 # - UPDATE without WHERE
@@ -153,18 +149,24 @@ sql-cli exec "TRUNCATE TABLE temp_data" -c mydb --confirm
 
 ### 6. Browse metadata
 ```bash
-# List all databases
-sql-cli query "SHOW DATABASES" -c mydb
+# List databases/schemas
+sql-cli meta dbs -c mydb
 
-# List tables (specify database if not in config)
-sql-cli query "SHOW TABLES FROM database_name" -c mydb
+# List tables
+sql-cli meta tables -c mydb
+sql-cli meta tables -c mydb -d schema_name
 
-# Show table structure
-sql-cli query "DESCRIBE table_name" -c mydb
-sql-cli query "SHOW COLUMNS FROM table_name" -c mydb
+# List columns
+sql-cli meta columns -t users -c mydb
 
-# Show CREATE TABLE statement
-sql-cli query "SHOW CREATE TABLE table_name" -c mydb
+# List indexes
+sql-cli meta indexes -t users -c mydb
+
+# List views
+sql-cli meta views -c mydb
+
+# Comprehensive table description (columns + PK + indexes + foreign keys)
+sql-cli meta describe -t users -c mydb
 ```
 
 ### 7. Export data
@@ -234,14 +236,14 @@ sql-cli conn test "测试环境读写连接" -v
 # 4. Query all databases
 sql-cli query "SHOW DATABASES" -c "测试环境读写连接"
 
-# 5. Query table structure
-sql-cli query "DESCRIBE org_orgs" -c "测试环境读写连接"
+# 5. Describe table structure
+sql-cli meta describe -t org_orgs -c "测试环境读写连接"
 
 # 6. Query first 10 rows
 sql-cli query "SELECT * FROM org_orgs LIMIT 10" -c "测试环境读写连接"
 
-# 7. Query specific columns
-sql-cli query "SELECT id, code, name, parentid, level FROM org_orgs WHERE enable=1 LIMIT 5" -c "测试环境读写连接"
+# 7. Query with timeout and save to file
+sql-cli query "SELECT * FROM org_orgs WHERE enable=1" -c "测试环境读写连接" --timeout 30 -o /tmp/orgs.csv
 ```
 
 ## Troubleshooting
@@ -292,14 +294,27 @@ sql-cli conn test mydb -v
 2. **Dangerous operations** (DROP TABLE, TRUNCATE, ALTER TABLE DROP): Require `--confirm` flag
 3. **Blocked operations** (DROP DATABASE, DELETE/UPDATE without WHERE): Always rejected
 4. **Auto row limit**: SELECT queries default to 500 rows max, use `--limit N` or `--no-limit` to override
-5. **NEVER execute destructive SQL on production databases** without explicit user confirmation
+5. **Query timeout**: Use `--timeout` to prevent runaway queries
+6. **NEVER execute destructive SQL on production databases** without explicit user confirmation
+
+## Supported Databases
+
+| Database   | Type ID        | Default Port |
+|-----------|----------------|-------------|
+| MySQL     | `mysql`        | 3306        |
+| Oracle    | `oracle`       | 1521        |
+| PostgreSQL| `postgresql`   | 5432        |
+| SQL Server| `mssql`        | 1433        |
+| SQLite    | `sqlite`       | -           |
+| DM (达梦)  | `dm` (custom)  | 5236        |
+| Others    | `generic`      | -           |
 
 ## Connection Parameters Reference
 
 | Parameter | Description |
 |-----------|-------------|
 | `-c, --connection` | Use saved connection by name |
-| `--type` | Database type (mysql/oracle/postgresql/sqlite/generic) |
+| `--type` | Database type (mysql/oracle/postgresql/mssql/sqlite/generic) |
 | `--host` | Database host |
 | `--port` | Database port |
 | `--user` | Username |
@@ -308,3 +323,6 @@ sql-cli conn test mydb -v
 | `--url` | Direct JDBC URL |
 | `--driver` | Driver jar file name (in drivers/ directory) |
 | `--driver-class` | JDBC Driver class name |
+| `--timeout` | Query timeout in seconds |
+| `-o, --output` | Save query results to file |
+| `-f, --format` | Output format: markdown/json/csv |

@@ -14,11 +14,12 @@ English | [中文](README.md)
 
 ## Features
 
-- **Multi-database** — MySQL, Oracle, PostgreSQL, SQLite, DM, and extensible via custom drivers
+- **Multi-database** — MySQL, Oracle, PostgreSQL, SQL Server, SQLite, DM, and extensible via custom drivers
 - **Security** — AES-256-GCM encrypted password storage, configurable safety levels (strict/normal/none)
 - **Import/Export** — CSV, JSON, SQL INSERT/UPDATE formats
 - **Connection management** — Saved configs with grouping and tagging
-- **Metadata browsing** — Databases, tables, columns, indexes
+- **Metadata browsing** — Databases, tables, columns, indexes, `meta describe` for comprehensive table overview
+- **Query enhancements** — Query timing, timeout control, output to file
 - **AI-friendly** — Markdown table output by default, optimized for AI agents
 
 ## Installation

@@ -14,11 +14,12 @@
 
 ## 特性
 
-- **多数据库支持** — MySQL、Oracle、PostgreSQL、SQLite、达梦等，可通过自定义驱动扩展
+- **多数据库支持** — MySQL、Oracle、PostgreSQL、SQL Server、SQLite、达梦等，可通过自定义驱动扩展
 - **安全保护** — 密码 AES-256-GCM 加密存储、安全级别控制（严格/正常/无）
 - **数据导入导出** — CSV、JSON、SQL INSERT/UPDATE 格式
 - **连接管理** — 保存连接配置，支持分组和标签
-- **元数据浏览** — 查看数据库、表、列、索引信息
+- **元数据浏览** — 查看数据库、表、列、索引信息，`meta describe` 综合表结构
+- **查询增强** — 查询计时、超时控制、结果输出到文件
 - **AI 友好** — 默认 Markdown 表格输出，专为 AI 助手优化
 
 ## 安装
@@ -85,7 +86,13 @@ sql-cli conn test mydb -v
 # 5. 执行查询
 sql-cli query "SELECT * FROM users LIMIT 10" -c mydb
 
-# 6. 导出数据
+# 6. 查询结果保存到文件
+sql-cli query "SELECT * FROM users" -c mydb -f csv -o /tmp/result.csv
+
+# 7. 查看表结构
+sql-cli meta describe -t users -c mydb
+
+# 8. 导出数据
 sql-cli export -t users -c mydb -f csv -o /tmp/users.csv
 ```
 
@@ -104,6 +111,18 @@ $ sql-cli query "SELECT id, name, email FROM users LIMIT 5" -c mydb
 ```
 
 更多用法详见 [完整文档](skill/sql-cli-skill.md)。
+
+## 新功能 (v1.0.1)
+
+| 功能 | 命令 |
+|------|------|
+| 查询计时 | `sql-cli query "SELECT ..." -c mydb` 自动显示耗时 |
+| 查询超时 | `sql-cli query "SELECT ..." -c mydb --timeout 30` |
+| 输出到文件 | `sql-cli query "SELECT ..." -c mydb -o result.csv` |
+| 表结构总览 | `sql-cli meta describe -t users -c mydb` |
+| SQL Server | `sql-cli conn add --name mssqldb --type mssql ...` |
+| 版本检查 | `sql-cli update check` |
+| 自动更新 | `sql-cli update` |
 
 ## 支持的数据库
 
