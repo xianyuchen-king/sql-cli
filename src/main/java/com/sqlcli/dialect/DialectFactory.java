@@ -14,7 +14,8 @@ public class DialectFactory {
             "mysql", new MysqlDialect(),
             "oracle", new OracleDialect(),
             "postgresql", new PostgresqlDialect(),
-            "sqlite", new SqliteDialect()
+            "sqlite", new SqliteDialect(),
+            "mssql", new MssqlDialect()
     );
 
     /**

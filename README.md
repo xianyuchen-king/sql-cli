@@ -107,14 +107,15 @@ $ sql-cli query "SELECT id, name, email FROM users LIMIT 5" -c mydb
 
 ## 支持的数据库
 
-| 数据库     | 类型标识       | 默认端口 |
-|-----------|---------------|---------|
-| MySQL     | `mysql`       | 3306    |
-| Oracle    | `oracle`      | 1521    |
-| PostgreSQL| `postgresql`  | 5432    |
-| SQLite    | `sqlite`      | -       |
-| 达梦       | `dm`（自定义） | 5236    |
-| 其他       | `generic`     | -       |
+| 数据库      | 类型标识       | 默认端口 |
+|------------|---------------|---------|
+| MySQL      | `mysql`       | 3306    |
+| Oracle     | `oracle`      | 1521    |
+| PostgreSQL | `postgresql`  | 5432    |
+| SQL Server | `mssql`       | 1433    |
+| SQLite     | `sqlite`      | -       |
+| 达梦        | `dm`（自定义） | 5236    |
+| 其他        | `generic`     | -       |
 
 ## 技术栈
 

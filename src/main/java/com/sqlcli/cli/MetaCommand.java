@@ -12,7 +12,8 @@ import picocli.CommandLine.Option;
                 MetaTablesCommand.class,
                 MetaColumnsCommand.class,
                 MetaIndexesCommand.class,
-                MetaViewsCommand.class
+                MetaViewsCommand.class,
+                MetaDescribeCommand.class
         })
 public class MetaCommand implements Runnable {
 

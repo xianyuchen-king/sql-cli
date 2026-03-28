@@ -11,6 +11,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Option;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 
 @Command(name = "query", description = "Execute a SELECT query")
@@ -58,6 +60,12 @@ public class QueryCommand implements Runnable {
     @Option(names = {"--no-limit"}, description = "Disable row limit")
     private boolean noLimit;
 
+    @Option(names = {"--timeout"}, type = Integer.class, description = "Query timeout in seconds")
+    private Integer timeout;
+
+    @Option(names = {"-o", "--output"}, description = "Output file path")
+    private String output;
+
     @Override
     public void run() {
         ConfigManager cm = new ConfigManager();
@@ -78,8 +86,15 @@ public class QueryCommand implements Runnable {
         try (Connection conn = connMgr.connect(resolved)) {
             QueryExecutor executor = new QueryExecutor();
             int maxRows = noLimit ? 0 : (limit != null ? limit : config.getDefaults().getMaxRows());
-            String result = executor.execute(conn, validatedSql, formatter, maxRows);
-            System.out.println(result);
+            int timeoutSec = timeout != null ? timeout : 0;
+            String result = executor.execute(conn, validatedSql, formatter, maxRows, timeoutSec);
+
+            if (output != null) {
+                Files.writeString(Path.of(output), result + "\n");
+                System.out.println("Result written to " + output);
+            } else {
+                System.out.println(result);
+            }
         } catch (Exception e) {
             System.err.println("[ERROR] " + e.getMessage());
         }

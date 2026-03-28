@@ -110,6 +110,7 @@ See [full documentation](skill/sql-cli-skill.md) for more details.
 | MySQL     | `mysql`        | 3306        |
 | Oracle    | `oracle`       | 1521        |
 | PostgreSQL| `postgresql`   | 5432        |
+| SQL Server| `mssql`        | 1433        |
 | SQLite    | `sqlite`       | -           |
 | DM (达梦)  | `dm` (custom)  | 5236        |
 | Others    | `generic`      | -           |

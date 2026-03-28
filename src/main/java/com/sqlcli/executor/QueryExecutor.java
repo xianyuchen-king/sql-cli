@@ -15,11 +15,14 @@ public class QueryExecutor {
      * Execute a SELECT query and return formatted results.
      * @return formatted string output
      */
-    public String execute(Connection conn, String sql, OutputFormatter formatter, int maxRows)
+    public String execute(Connection conn, String sql, OutputFormatter formatter, int maxRows, int timeoutSeconds)
             throws Exception {
         try (Statement stmt = conn.createStatement()) {
             if (maxRows > 0) {
                 stmt.setMaxRows(maxRows);
+            }
+            if (timeoutSeconds > 0) {
+                stmt.setQueryTimeout(timeoutSeconds);
             }
             long start = System.nanoTime();
             try (ResultSet rs = stmt.executeQuery(sql)) {
@@ -48,5 +51,13 @@ public class QueryExecutor {
                 return formatter.formatQuery(columns, rows) + "\n" + summary;
             }
         }
+    }
+
+    /**
+     * Execute without timeout (backward compatible).
+     */
+    public String execute(Connection conn, String sql, OutputFormatter formatter, int maxRows)
+            throws Exception {
+        return execute(conn, sql, formatter, maxRows, 0);
     }
 }
