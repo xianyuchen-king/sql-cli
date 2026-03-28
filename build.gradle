@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.sqlcli'
-version = '1.0.1'
+version = project.findProperty('version') ?: '1.0.1'
 
 java {
     toolchain {
@@ -58,6 +58,9 @@ shadowJar {
     archiveClassifier = ''
     archiveVersion = ''
     mergeServiceFiles()
+    manifest {
+        attributes 'Implementation-Version': project.version
+    }
 }
 
 tasks.named('build') {

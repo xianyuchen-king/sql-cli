@@ -1,7 +1,8 @@
 package com.sqlcli.cli;
 
 import com.sqlcli.config.ConfigManager;
-import com.sqlcli.connection.DriverLoader;
+import com.sqlcli.driver.DriverRegistry;
+import com.sqlcli.driver.DriverRegistry.DriverInfo;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -13,17 +14,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.time.Duration;
-import java.util.Map;
 
 @Command(name = "install", description = "Install a JDBC driver")
 public class DriverInstallCommand implements Runnable {
-
-    private static final Map<String, DriverInfo> DRIVER_INFO = Map.of(
-            "mysql", new DriverInfo("com.mysql", "mysql-connector-j", "8.3.0"),
-            "oracle", new DriverInfo("com.oracle.database.jdbc", "ojdbc11", "23.3.0.23.09"),
-            "postgresql", new DriverInfo("org.postgresql", "postgresql", "42.7.2"),
-            "sqlite", new DriverInfo("org.xerial", "sqlite-jdbc", "3.45.1.0")
-    );
 
     @Parameters(paramLabel = "TYPE", description = "Database type (mysql/oracle/postgresql/sqlite)")
     private String type;
@@ -34,15 +27,15 @@ public class DriverInstallCommand implements Runnable {
     @Override
     public void run() {
         ConfigManager cm = new ConfigManager();
-        DriverInfo info = DRIVER_INFO.get(type.toLowerCase());
+        DriverInfo info = DriverRegistry.get(type);
 
         if (info == null) {
             System.err.println("[ERROR] Unknown driver type: " + type);
-            System.err.println("Available types: " + String.join(", ", DRIVER_INFO.keySet()));
+            System.err.println("Available types: " + String.join(", ", DriverRegistry.all().keySet()));
             return;
         }
 
-        String driverVersion = version != null ? version : info.version();
+        String driverVersion = version != null ? version : info.defaultVersion();
         String jarName = info.artifactId() + "-" + driverVersion + ".jar";
 
         File driverDir = cm.getDriverDir().toFile();
@@ -85,6 +78,4 @@ public class DriverInstallCommand implements Runnable {
             System.err.println("You can manually download and place it in: " + driverDir);
         }
     }
-
-    record DriverInfo(String groupId, String artifactId, String version) {}
 }

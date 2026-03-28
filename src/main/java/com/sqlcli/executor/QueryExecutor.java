@@ -21,6 +21,7 @@ public class QueryExecutor {
             if (maxRows > 0) {
                 stmt.setMaxRows(maxRows);
             }
+            long start = System.nanoTime();
             try (ResultSet rs = stmt.executeQuery(sql)) {
                 ResultSetMetaData meta = rs.getMetaData();
                 int colCount = meta.getColumnCount();
@@ -39,7 +40,12 @@ public class QueryExecutor {
                     rows.add(row);
                 }
 
-                return formatter.formatQuery(columns, rows);
+                long elapsed = System.nanoTime() - start;
+                double seconds = elapsed / 1_000_000_000.0;
+                String summary = rows.size() + " row" + (rows.size() != 1 ? "s" : "")
+                        + " in set (" + String.format("%.2f", seconds) + "s)";
+
+                return formatter.formatQuery(columns, rows) + "\n" + summary;
             }
         }
     }
