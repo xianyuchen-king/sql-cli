@@ -3,6 +3,9 @@ build/
 .gradle/
 !gradle-wrapper.jar
 
+# npm
+node_modules/
+
 # IDE
 .idea/
 *.iml
@@ -22,5 +25,4 @@ drivers/
 
 # Misc
 *.class
-*.jar
 *.log

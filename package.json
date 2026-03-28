@@ -1,0 +1,34 @@
+{
+  "name": "@cyq/sql-cli",
+  "version": "1.0.0",
+  "description": "A CLI tool for connecting to relational databases (MySQL, Oracle, PostgreSQL, SQLite, etc.) via JDBC. Designed for AI coding agents like Claude Code.",
+  "bin": {
+    "sql-cli": "./bin/sql-cli.js"
+  },
+  "files": [
+    "bin/",
+    "jar/",
+    "README.md"
+  ],
+  "scripts": {
+    "prepack": "./scripts/build-jar.sh",
+    "postinstall": "node scripts/postinstall.js"
+  },
+  "keywords": [
+    "sql",
+    "cli",
+    "database",
+    "mysql",
+    "oracle",
+    "postgresql",
+    "sqlite",
+    "jdbc",
+    "claude-code",
+    "ai-agent"
+  ],
+  "author": "cyq",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  }
+}
