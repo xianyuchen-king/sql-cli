@@ -3,6 +3,7 @@
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.org/projects/jdk/21/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Release](https://img.shields.io/github/v/release/xianyuchen-king/sql-cli?include_prereleases&display_name=tag)](https://github.com/xianyuchen-king/sql-cli/releases)
+[![npm version](https://img.shields.io/npm/v/@black-cyq/sql-cli.svg)](https://www.npmjs.com/package/@black-cyq/sql-cli)
 ![Status](https://img.shields.io/badge/Status-Beta-orange.svg)
 
 一个用于连接关系型数据库的 CLI 工具，通过 JDBC 驱动支持 MySQL、Oracle、PostgreSQL、SQLite、达梦等数据库。专为 AI 编程助手（如 Claude Code）设计。
@@ -25,8 +26,17 @@
 ### 前置要求
 
 - Java 21+ 已安装并在 PATH 中
+- Node.js 16+（仅 npm 安装方式需要）
 
-### 方式一：从源码构建（推荐）
+### 方式一：npm 安装（推荐）
+
+```bash
+npm install -g @black-cyq/sql-cli
+```
+
+安装完成后即可使用 `sql-cli` 命令。
+
+### 方式二：从源码构建
 
 ```bash
 git clone https://github.com/xianyuchen-king/sql-cli.git
@@ -36,10 +46,11 @@ cd sql-cli
 
 构建完成后，jar 文件位于 `build/libs/sql-cli.jar`。
 
-创建启动脚本：
-
 ```bash
-# Linux/macOS
+# 直接运行
+java -jar build/libs/sql-cli.jar --help
+
+# 或创建启动脚本
 sudo tee /usr/local/bin/sql-cli << 'EOF'
 #!/bin/bash
 java -jar /path/to/sql-cli/build/libs/sql-cli.jar "$@"
@@ -47,12 +58,11 @@ EOF
 sudo chmod +x /usr/local/bin/sql-cli
 ```
 
-### 方式二：下载预编译版本
+### 方式三：下载预编译版本
 
 前往 [Releases](https://github.com/xianyuchen-king/sql-cli/releases) 页面下载最新 jar 文件。
 
 ```bash
-# 下载后直接运行
 java -jar sql-cli.jar --help
 ```
 

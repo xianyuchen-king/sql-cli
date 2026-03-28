@@ -35,7 +35,11 @@ function checkJava() {
 function checkJar() {
   if (!existsSync(jarFile)) {
     console.error(`Error: sql-cli.jar not found at ${jarFile}`);
-    console.error('Please reinstall: npm install -g @cyq/sql-cli');
+    if (existsSync(join(__dirname, '..', 'node_modules'))) {
+      console.error('Please reinstall: npm install -g @black-cyq/sql-cli');
+    } else {
+      console.error('Please build first: ./gradlew shadowJar && mkdir -p jar && cp build/libs/sql-cli.jar jar/');
+    }
     process.exit(1);
   }
 }

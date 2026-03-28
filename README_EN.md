@@ -3,6 +3,7 @@
 [![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://openjdk.org/projects/jdk/21/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Release](https://img.shields.io/github/v/release/xianyuchen-king/sql-cli?include_prereleases&display_name=tag)](https://github.com/xianyuchen-king/sql-cli/releases)
+[![npm version](https://img.shields.io/npm/v/@black-cyq/sql-cli.svg)](https://www.npmjs.com/package/@black-cyq/sql-cli)
 ![Status](https://img.shields.io/badge/Status-Beta-orange.svg)
 
 A CLI tool for connecting to relational databases via JDBC drivers. Supports MySQL, Oracle, PostgreSQL, SQLite, DM, and more. Designed for AI coding agents like Claude Code.
@@ -25,8 +26,15 @@ English | [中文](README.md)
 ### Prerequisites
 
 - Java 21+ installed and on PATH
+- Node.js 16+ (only needed for npm installation)
 
-### Option 1: Build from source (recommended)
+### Option 1: npm (recommended)
+
+```bash
+npm install -g @black-cyq/sql-cli
+```
+
+### Option 2: Build from source
 
 ```bash
 git clone https://github.com/xianyuchen-king/sql-cli.git
@@ -34,10 +42,13 @@ cd sql-cli
 ./gradlew shadowJar
 ```
 
-The jar will be at `build/libs/sql-cli.jar`. Create a launcher script:
+The jar will be at `build/libs/sql-cli.jar`.
 
 ```bash
-# Linux/macOS
+# Run directly
+java -jar build/libs/sql-cli.jar --help
+
+# Or create a launcher script
 sudo tee /usr/local/bin/sql-cli << 'EOF'
 #!/bin/bash
 java -jar /path/to/sql-cli/build/libs/sql-cli.jar "$@"
@@ -45,7 +56,7 @@ EOF
 sudo chmod +x /usr/local/bin/sql-cli
 ```
 
-### Option 2: Download pre-built jar
+### Option 3: Download pre-built jar
 
 Visit the [Releases](https://github.com/xianyuchen-king/sql-cli/releases) page to download the latest jar.
 

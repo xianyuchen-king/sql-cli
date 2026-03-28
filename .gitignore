@@ -1,6 +1,8 @@
 # Build
 build/
-bin/
+bin/main/
+bin/test/
+bin/default/
 .gradle/
 jar/
 !gradle-wrapper.jar

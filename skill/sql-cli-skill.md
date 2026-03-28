@@ -18,7 +18,7 @@ Run `sql-cli --version` to check if sql-cli is installed.
 
 ### Install via npm (Recommended)
 ```bash
-npm install -g @cyq/sql-cli
+npm install -g @black-cyq/sql-cli
 ```
 
 After installation, `~/.sql-cli/` directory is auto-created with `drivers/` subdirectory.
@@ -26,30 +26,21 @@ After installation, `~/.sql-cli/` directory is auto-created with `drivers/` subd
 ### Install from source (development)
 1. Clone the repository and build:
    ```bash
-   cd /path/to/SQL-cli
+   git clone https://github.com/xianyuchen-king/sql-cli.git
+   cd sql-cli
    ./gradlew shadowJar
    ```
-2. Create a startup script:
+2. Run directly or create a startup script:
    ```bash
-   sudo tee /usr/local/bin/sql-cli << 'EOF'
-   #!/bin/bash
-   java -jar /path/to/SQL-cli/build/libs/sql-cli.jar "$@"
-   EOF
-   sudo chmod +x /usr/local/bin/sql-cli
+   java -jar build/libs/sql-cli.jar --help
    ```
 3. Run `sql-cli init` to initialize configuration
 4. Set the encryption key environment variable (shown during init)
 
-### Initialize Configuration
-```bash
-sql-cli init
-```
-This creates `~/.sql-cli/config.yml` and `~/.sql-cli/drivers/`.
-
 ### Uninstall
 ```bash
 # npm uninstall
-npm uninstall -g @cyq/sql-cli
+npm uninstall -g @black-cyq/sql-cli
 
 # Remove config and drivers (optional)
 sql-cli uninstall --confirm    # Removes ~/.sql-cli/ entirely
