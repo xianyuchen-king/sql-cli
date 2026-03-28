@@ -6,20 +6,54 @@ type: user
 
 # SQL Database Tool (sql-cli)
 
+## Prerequisites
+
+- **Java 17+** must be installed and on PATH. sql-cli checks this on startup.
+- **Node.js 16+** required for npm installation (not needed at runtime).
+
 ## Installation & Setup
 
 ### Check Installation
 Run `sql-cli --version` to check if sql-cli is installed.
 
-### Install (if not installed)
-1. Download `sql-cli.jar` from GitHub Releases
+### Install via npm (Recommended)
+```bash
+npm install -g @cyq/sql-cli
+```
+
+After installation, `~/.sql-cli/` directory is auto-created with `drivers/` subdirectory.
+
+### Install from source (development)
+1. Clone the repository and build:
+   ```bash
+   cd /path/to/SQL-cli
+   ./gradlew shadowJar
+   ```
 2. Create a startup script:
    ```bash
-   # Add to PATH, e.g. /usr/local/bin/sql-cli
-   java -jar /path/to/sql-cli.jar "$@"
+   sudo tee /usr/local/bin/sql-cli << 'EOF'
+   #!/bin/bash
+   java -jar /path/to/SQL-cli/build/libs/sql-cli.jar "$@"
+   EOF
+   sudo chmod +x /usr/local/bin/sql-cli
    ```
 3. Run `sql-cli init` to initialize configuration
 4. Set the encryption key environment variable (shown during init)
+
+### Initialize Configuration
+```bash
+sql-cli init
+```
+This creates `~/.sql-cli/config.yml` and `~/.sql-cli/drivers/`.
+
+### Uninstall
+```bash
+# npm uninstall
+npm uninstall -g @cyq/sql-cli
+
+# Remove config and drivers (optional)
+sql-cli uninstall --confirm    # Removes ~/.sql-cli/ entirely
+```
 
 ### Initialize Configuration
 ```bash
