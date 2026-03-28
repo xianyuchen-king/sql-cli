@@ -112,6 +112,36 @@ $ sql-cli query "SELECT id, name, email FROM users LIMIT 5" -c mydb
 
 更多用法详见 [完整文档](skill/sql-cli-skill.md)。
 
+## AI 编程助手集成
+
+sql-cli 提供了 AI Skill，可让 Claude Code、Cursor、GitHub Copilot 等 AI 编程助手直接使用 sql-cli 操作数据库。
+
+### 安装 Skill
+
+```bash
+# 全局安装（推荐，自动适配已安装的 AI 工具）
+npx skills add xianyuchen-king/sql-cli -g
+
+# 自动确认，无需交互
+npx skills add xianyuchen-king/sql-cli -g -y
+```
+
+### 支持的 AI 工具
+
+安装后自动适配以下 AI 编程助手：
+
+| AI 工具 | 支持方式 |
+|---------|---------|
+| Claude Code | 自动 |
+| Cursor | 自动 |
+| GitHub Copilot | 自动 |
+| Codex | 自动 |
+| Gemini CLI | 自动 |
+| Cline | 自动 |
+| Windsurf / Amp / Trae 等 | 自动 |
+
+完整列表请运行 `npx skills add xianyuchen-king/sql-cli -g` 查看。
+
 ## 新功能 (v1.0.1)
 
 | 功能 | 命令 |

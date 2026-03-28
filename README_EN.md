@@ -104,6 +104,34 @@ $ sql-cli query "SELECT id, name, email FROM users LIMIT 5" -c mydb
 
 See [full documentation](skill/sql-cli-skill.md) for more details.
 
+## AI Coding Agent Integration
+
+sql-cli provides an AI Skill that enables AI coding agents like Claude Code, Cursor, and GitHub Copilot to use sql-cli directly.
+
+### Install Skill
+
+```bash
+# Global install (recommended, auto-detects installed AI tools)
+npx skills add xianyuchen-king/sql-cli -g
+
+# Skip interactive prompts
+npx skills add xianyuchen-king/sql-cli -g -y
+```
+
+### Supported AI Tools
+
+| AI Tool | Support |
+|---------|---------|
+| Claude Code | Auto |
+| Cursor | Auto |
+| GitHub Copilot | Auto |
+| Codex | Auto |
+| Gemini CLI | Auto |
+| Cline | Auto |
+| Windsurf / Amp / Trae etc. | Auto |
+
+Run `npx skills add xianyuchen-king/sql-cli -g` to see the full list.
+
 ## Supported Databases
 
 | Database   | Type ID        | Default Port |
