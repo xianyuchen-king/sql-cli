@@ -74,13 +74,20 @@ public class QueryCommand implements Runnable {
         ConnectionManager connMgr = new ConnectionManager(cm);
         AppConfig config = cm.load();
 
-        ConnectionOptions opts = new ConnectionOptions(cm, connMgr);
-        ConnectionConfig inlineConfig = opts.buildInlineConfig(type, host, port, user, password, db, url, driver, driverClass);
-        ConnectionConfig resolved = connMgr.resolveConnection(connection, inlineConfig);
-
-        // Resolve format first so SafetyGuard warnings can be routed correctly
+        // Resolve format first so all errors/warnings can be routed correctly
         String outputFormat = format != null ? format : config.getDefaults().getOutputFormat();
         boolean isJson = CliErrorHandler.isJsonFormat(outputFormat);
+
+        ConnectionOptions opts = new ConnectionOptions(cm, connMgr);
+        ConnectionConfig inlineConfig = opts.buildInlineConfig(type, host, port, user, password, db, url, driver, driverClass);
+
+        ConnectionConfig resolved;
+        try {
+            resolved = connMgr.resolveConnection(connection, inlineConfig);
+        } catch (Exception e) {
+            CliErrorHandler.handleError(e, outputFormat);
+            return;
+        }
 
         SafetyGuard guard = new SafetyGuard();
         String validatedSql;
