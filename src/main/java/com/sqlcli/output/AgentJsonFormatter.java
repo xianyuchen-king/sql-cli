@@ -1,12 +1,22 @@
 package com.sqlcli.output;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Structured JSON formatter for Agent consumption.
- * Wraps all output in a JSON envelope with status, data, and meta fields.
+ * Wraps all output in a JSON envelope with status, data, meta, and optional warnings fields.
  */
 public class AgentJsonFormatter implements OutputFormatter {
+
+    private List<String> warnings = Collections.emptyList();
+
+    /**
+     * Set warnings to include in the JSON envelope.
+     */
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings != null ? warnings : Collections.emptyList();
+    }
 
     @Override
     public String formatQuery(List<String> columns, List<List<Object>> rows) {
@@ -39,8 +49,11 @@ public class AgentJsonFormatter implements OutputFormatter {
             sb.append(",\n");
             sb.append("    \"elapsed_seconds\": ").append(String.format("%.2f", elapsedSeconds));
         }
-        sb.append("\n  }\n");
-        sb.append("}");
+        sb.append("\n  }");
+
+        appendWarnings(sb);
+
+        sb.append("\n}");
         return sb.toString();
     }
 
@@ -59,9 +72,19 @@ public class AgentJsonFormatter implements OutputFormatter {
         sb.append(buildJsonArray(columns));
         sb.append(",\n");
         sb.append("    \"row_count\": ").append(rows.size());
-        sb.append("\n  }\n");
-        sb.append("}");
+        sb.append("\n  }");
+
+        appendWarnings(sb);
+
+        sb.append("\n}");
         return sb.toString();
+    }
+
+    private void appendWarnings(StringBuilder sb) {
+        if (!warnings.isEmpty()) {
+            sb.append(",\n  \"warnings\": ");
+            sb.append(buildJsonArray(warnings));
+        }
     }
 
     /**

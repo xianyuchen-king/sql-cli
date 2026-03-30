@@ -5,6 +5,7 @@ import com.sqlcli.config.ConfigManager;
 import com.sqlcli.config.ConnectionConfig;
 import com.sqlcli.connection.ConnectionManager;
 import com.sqlcli.executor.QueryExecutor;
+import com.sqlcli.output.AgentJsonFormatter;
 import com.sqlcli.output.OutputFormatter;
 import com.sqlcli.safety.SafetyGuard;
 import picocli.CommandLine.Command;
@@ -14,6 +15,7 @@ import picocli.CommandLine.Option;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
+import java.util.List;
 
 @Command(name = "query", description = "Execute a SELECT query")
 public class QueryCommand implements Runnable {
@@ -76,12 +78,30 @@ public class QueryCommand implements Runnable {
         ConnectionConfig inlineConfig = opts.buildInlineConfig(type, host, port, user, password, db, url, driver, driverClass);
         ConnectionConfig resolved = connMgr.resolveConnection(connection, inlineConfig);
 
-        SafetyGuard guard = new SafetyGuard();
-        String validatedSql = guard.validate(sql, resolved, false, noLimit,
-                limit != null ? limit : 0, config);
-
+        // Resolve format first so SafetyGuard warnings can be routed correctly
         String outputFormat = format != null ? format : config.getDefaults().getOutputFormat();
+        boolean isJson = CliErrorHandler.isJsonFormat(outputFormat);
+
+        SafetyGuard guard = new SafetyGuard();
+        String validatedSql;
+        try {
+            validatedSql = guard.validate(sql, resolved, false, noLimit,
+                    limit != null ? limit : 0, config);
+        } catch (Exception e) {
+            CliErrorHandler.handleError(e, outputFormat);
+            return;
+        }
+
+        // Route warnings: stderr for plaintext, injected into formatter for JSON
+        List<String> warnings = guard.getWarnings();
         OutputFormatter formatter = OutputFormatter.create(outputFormat);
+        if (!isJson) {
+            for (String w : warnings) {
+                System.err.println("[WARN] " + w);
+            }
+        } else if (formatter instanceof AgentJsonFormatter ajf) {
+            ajf.setWarnings(warnings);
+        }
 
         try (Connection conn = connMgr.connect(resolved)) {
             QueryExecutor executor = new QueryExecutor();

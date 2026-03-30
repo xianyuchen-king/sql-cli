@@ -6,16 +6,24 @@ import com.sqlcli.dialect.Dialect;
 import com.sqlcli.dialect.DialectFactory;
 import com.sqlcli.output.ErrorCode;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class SafetyGuard {
 
     private final SqlAnalyzer analyzer = new SqlAnalyzer();
+    private final List<String> warnings = new ArrayList<>();
 
     /**
      * Validate SQL against safety rules. Throws SafetyException if blocked.
+     * Warnings are collected and can be retrieved via getWarnings().
      * @return the (possibly modified) SQL to execute
      */
     public String validate(String sql, ConnectionConfig config, boolean confirm,
                            boolean noLimit, int userLimit, AppConfig appConfig) {
+        warnings.clear();
+
         // Check connection-level safety
         String effectiveLevel = config.getEffectiveSafetyLevel(
                 appConfig.getDefaults().getSafetyLevel());
@@ -46,13 +54,22 @@ public class SafetyGuard {
                 break;
             case WARNING:
                 String msg = analyzer.getMessage(risk, sql);
-                if (msg != null) System.err.println(msg);
+                if (msg != null) {
+                    warnings.add(msg.replaceFirst("^\\[WARN\\]\\s*", ""));
+                }
                 break;
             case SAFE:
                 break;
         }
 
         return applyRowLimit(sql, config, noLimit, userLimit, appConfig);
+    }
+
+    /**
+     * Get warnings collected during the last validate() call.
+     */
+    public List<String> getWarnings() {
+        return Collections.unmodifiableList(warnings);
     }
 
     /**
@@ -65,7 +82,7 @@ public class SafetyGuard {
         // Determine effective limit
         int effectiveLimit;
         if (noLimit) {
-            System.err.println("[WARN] Row limit disabled. Large table queries may cause memory issues.");
+            warnings.add("Row limit disabled. Large table queries may cause memory issues.");
             return sql;
         } else if (userLimit > 0) {
             effectiveLimit = userLimit;
@@ -88,8 +105,8 @@ public class SafetyGuard {
         if (appConfig.getDefaults().isAutoLimit()) {
             String wrapped = dialect.wrapLimit(sql, effectiveLimit);
             if (wrapped != null) return wrapped;
-            System.err.println("[WARN] Cannot auto-append row limit for this database type. "
-                    + "Please add LIMIT clause manually.");
+            // Dialect cannot wrap limit — collect as warning instead of printing to stderr
+            warnings.add("Cannot auto-append row limit for " + config.getType() + " type");
         }
 
         return sql;

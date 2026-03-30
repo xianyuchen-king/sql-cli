@@ -12,6 +12,7 @@ import picocli.CommandLine.Option;
 
 import java.sql.Connection;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Map;
 
 @Command(name = "exec", description = "Execute DDL/DML statement")
@@ -66,20 +67,38 @@ public class ExecCommand implements Runnable {
         ConnectionConfig inlineConfig = opts.buildInlineConfig(type, host, port, user, password, db, url, driver, driverClass);
         ConnectionConfig resolved = connMgr.resolveConnection(connection, inlineConfig);
 
+        // Resolve format first
+        String outputFormat = format != null ? format : config.getDefaults().getOutputFormat();
+        boolean isJson = CliErrorHandler.isJsonFormat(outputFormat);
+
         SafetyGuard guard = new SafetyGuard();
-        String validatedSql = guard.validate(sql, resolved, confirm, true, 0, config);
+        String validatedSql;
+        try {
+            validatedSql = guard.validate(sql, resolved, confirm, true, 0, config);
+        } catch (Exception e) {
+            CliErrorHandler.handleError(e, outputFormat);
+            return;
+        }
+
+        // Route warnings for plaintext mode
+        List<String> warnings = guard.getWarnings();
+        if (!isJson) {
+            for (String w : warnings) {
+                System.err.println("[WARN] " + w);
+            }
+        }
 
         try (Connection conn = connMgr.connect(resolved)) {
             try (Statement stmt = conn.createStatement()) {
                 int affected = stmt.executeUpdate(validatedSql);
-                if (CliErrorHandler.isJsonFormat(format)) {
-                    System.out.println(AgentResult.ok(Map.of("affected_rows", affected)).toJson());
+                if (isJson) {
+                    System.out.println(AgentResult.ok(Map.of("affected_rows", affected), warnings).toJson());
                 } else {
                     System.out.println("[DONE] " + affected + " row(s) affected.");
                 }
             }
         } catch (Exception e) {
-            CliErrorHandler.handleError(e, format);
+            CliErrorHandler.handleError(e, outputFormat);
         }
     }
 }

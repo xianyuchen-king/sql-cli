@@ -38,6 +38,8 @@ src/main/java/com/sqlcli/
 │   ├── QueryCommand            # sql-cli query "SQL" -c name [--timeout] [-o file]
 │   ├── ExecCommand             # sql-cli exec "SQL" -c name [--confirm]
 │   ├── MetaCommand (group)     # sql-cli meta dbs/tables/columns/indexes/views/describe
+│   ├── MetaConnectionMixin     # meta 子命令共享选项 (-c, -f, 内联连接参数)
+│   ├── MetaConnectionMixin     # meta 子命令共享选项 (-c, -f, 内联连接参数)
 │   ├── ExportCommand           # sql-cli export -t table -c name -f csv/json/insert
 │   ├── ImportCommand           # sql-cli import -t table -c name -f file
 │   ├── DriverCommand (group)   # sql-cli driver install/list/remove/available
@@ -80,6 +82,7 @@ src/main/java/com/sqlcli/
 ## 关键设计模式
 
 - **命令模式**：所有 CLI 命令 `implements Runnable`，使用 Picocli 注解
+- **Mixin 共享选项**：`MetaConnectionMixin` 让 meta 子命令支持 `-c`/`-f` 写在子命令名前后
 - **方言工厂**：`DialectFactory.getDialect(type, config)` 按优先级解析
 - **驱动注册表**：`DriverRegistry` 集中管理所有驱动的 Maven 坐标和元数据
 - **配置缓存**：`ConfigManager.load()` 首次读取后缓存在内存
@@ -87,8 +90,10 @@ src/main/java/com/sqlcli/
 - **安全级别**：连接级可覆盖全局配置，strict/normal/none 三档
 - **自动行数限制**：SELECT 默认限制 500 行，通过各 dialect 的 `wrapLimit()` 实现
 - **Schema 自动解析**：Meta 子命令未指定 `-d` 时自动使用连接的 `db` 字段作为 schema 过滤
-- **Agent-JSON 输出**：`--format agent-json` 返回 `{status, data, meta}` 结构化信封，错误也包含 `error_code`
+- **Warnings 收集**：`SafetyGuard` 收集 warnings 到 list，JSON 模式写入信封 `"warnings"` 字段，plaintext 模式走 stderr
+- **Agent-JSON 输出**：`--format agent-json` 返回 `{status, data, meta, warnings?}` 结构化信封，错误也包含 `error_code`
 - **统一错误处理**：所有命令通过 `CliErrorHandler` 集中处理，JSON 模式输出结构化错误
+- **SafetyException 捕获**：`validate()` 在 try-catch 内调用，确保 SafetyException 也走结构化输出
 
 ## 配置文件位置
 

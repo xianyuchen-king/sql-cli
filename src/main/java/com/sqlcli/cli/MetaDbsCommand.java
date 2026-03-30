@@ -6,6 +6,7 @@ import com.sqlcli.connection.ConnectionManager;
 import com.sqlcli.executor.MetaExecutor;
 import com.sqlcli.output.OutputFormatter;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.ParentCommand;
 
 import java.sql.Connection;
@@ -16,18 +17,24 @@ public class MetaDbsCommand implements Runnable {
     @ParentCommand
     private MetaCommand parent;
 
+    @Mixin
+    private MetaConnectionMixin opts = new MetaConnectionMixin();
+
     @Override
     public void run() {
         ConfigManager cm = new ConfigManager();
         ConnectionManager connMgr = new ConnectionManager(cm);
-        ConnectionConfig resolved = connMgr.resolveConnection(parent.connection, parent.buildInlineConfig());
+        String connName = opts.getConnection() != null ? opts.getConnection() : parent.opts.getConnection();
+        String resolvedFmt = opts.getFormat() != null ? opts.resolveFormat(cm) : parent.opts.resolveFormat(cm);
+        ConnectionConfig inlineConfig = opts.getConnection() != null ? opts.buildInlineConfig() : parent.opts.buildInlineConfig();
+        ConnectionConfig resolved = connMgr.resolveConnection(connName, inlineConfig);
 
         try (Connection conn = connMgr.connect(resolved)) {
             MetaExecutor executor = new MetaExecutor();
-            OutputFormatter formatter = parent.resolveFormatter(cm);
+            OutputFormatter formatter = OutputFormatter.create(resolvedFmt);
             System.out.println(executor.listDatabases(conn, formatter));
         } catch (Exception e) {
-            CliErrorHandler.handleError(e, parent.format);
+            CliErrorHandler.handleError(e, resolvedFmt);
         }
     }
 }

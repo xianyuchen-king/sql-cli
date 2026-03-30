@@ -304,13 +304,18 @@ When using sql-cli programmatically (e.g., via AI agents), follow these patterns
 
 ### Use `-f json` or `-f agent-json` for parseable output
 - `json`: Returns a raw JSON array of row objects (for queries) or table data (for metadata)
-- `agent-json`: Returns a structured envelope with `status`, `data`, and `meta` fields (recommended for agents)
-- All commands support `--format` / `-f`: `query`, `exec`, `meta`, `conn list`, `conn show`, `conn test`, `driver list`
+- `agent-json`: Returns a structured envelope with `status`, `data`, `meta`, and optional `warnings` fields (recommended for agents)
+- All commands support `--format` / `-f`: `query`, `exec`, `meta` (all subcommands), `conn list`, `conn show`, `conn test`, `driver list`
 - In JSON mode, errors are also structured: `{"status":"error","error_code":"SAFETY_BLOCKED","message":"..."}`
+- Warnings (e.g., row limit not applicable for certain databases) appear in the `"warnings"` array inside the JSON envelope, never as leaked plaintext
 
 ### Schema auto-resolution for meta commands
-When a connection has a `db` configured, `meta` subcommands automatically use it as the schema filter:
+When a connection has a `db` configured, `meta` subcommands automatically use it as the schema filter. Options `-c` and `-f` can be placed before or after the subcommand name:
 ```bash
+# Both forms work:
+sql-cli meta -c myconn -f agent-json tables
+sql-cli meta tables -c myconn -f agent-json
+
 # No need for -d if the connection already has --db configured
 sql-cli meta describe -t mytable -c myconn
 sql-cli meta tables -c myconn
@@ -323,11 +328,14 @@ When `--format json` or `--format agent-json` is used, errors include a machine-
 - `SAFETY_DANGEROUS` - Dangerous SQL requires `--confirm`
 - `SAFETY_STRICT_MODE` - Non-SELECT blocked in strict mode
 - `CONNECTION_NOT_FOUND` - Unknown connection name
-- `CONNECTION_FAILED` - Connection refused or unreachable
+- `CONNECTION_FAILED` - Connection refused, unreachable, authentication failure, or connection lost
 - `QUERY_TIMEOUT` - Query exceeded timeout
 - `DRIVER_NOT_FOUND` - JDBC driver jar not installed
+- `DRIVER_CLASS_NOT_FOUND` - Driver class not found on classpath
 - `TABLE_NOT_FOUND` - Table does not exist
-- `DUPLICATE_KEY` - Unique constraint violation
+- `DUPLICATE_KEY` - Unique constraint or primary key violation
+- `VALIDATION_ERROR` - SQL syntax error
+- `CONFIG_ERROR` - Configuration file error
 
 ## Safety Rules
 

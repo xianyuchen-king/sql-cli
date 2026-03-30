@@ -1,5 +1,6 @@
 package com.sqlcli.output;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -12,32 +13,42 @@ public class AgentResult {
     private final String errorCode;
     private final String message;
     private final Object data;
+    private final List<String> warnings;
 
-    private AgentResult(String status, String errorCode, String message, Object data) {
+    private AgentResult(String status, String errorCode, String message, Object data, List<String> warnings) {
         this.status = status;
         this.errorCode = errorCode;
         this.message = message;
         this.data = data;
+        this.warnings = warnings;
     }
 
     public static AgentResult ok(String message, Object data) {
-        return new AgentResult("ok", null, message, data);
+        return new AgentResult("ok", null, message, data, null);
     }
 
     public static AgentResult ok(Object data) {
-        return new AgentResult("ok", null, null, data);
+        return new AgentResult("ok", null, null, data, null);
     }
 
     public static AgentResult ok(String message) {
-        return new AgentResult("ok", null, message, null);
+        return new AgentResult("ok", null, message, null, null);
+    }
+
+    public static AgentResult ok(Object data, List<String> warnings) {
+        return new AgentResult("ok", null, null, data, warnings);
     }
 
     public static AgentResult error(ErrorCode code, String message) {
-        return new AgentResult("error", code.name(), message, null);
+        return new AgentResult("error", code.name(), message, null, null);
     }
 
     public static AgentResult error(String message) {
-        return new AgentResult("error", ErrorCode.UNKNOWN.name(), message, null);
+        return new AgentResult("error", ErrorCode.UNKNOWN.name(), message, null, null);
+    }
+
+    public static AgentResult error(ErrorCode code, String message, List<String> warnings) {
+        return new AgentResult("error", code.name(), message, null, warnings);
     }
 
     /**
@@ -68,6 +79,10 @@ public class AgentResult {
             } else {
                 sb.append("\"").append(escape(data.toString())).append("\"");
             }
+        }
+        if (warnings != null && !warnings.isEmpty()) {
+            sb.append(",\n  \"warnings\": ");
+            sb.append(stringListToJson(warnings));
         }
         sb.append("\n}");
         return sb.toString();
@@ -135,6 +150,17 @@ public class AgentResult {
             }
         }
         if (!first) sb.append("\n  ");
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private String stringListToJson(List<String> items) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int i = 0; i < items.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append("\"").append(escape(items.get(i))).append("\"");
+        }
         sb.append("]");
         return sb.toString();
     }
