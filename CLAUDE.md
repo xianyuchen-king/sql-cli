@@ -64,13 +64,17 @@ src/main/java/com/sqlcli/
 │   ├── MetaExecutor            # 元数据查询（DatabaseMetaData），含 describeTable
 │   └── TransferExecutor        # 导入导出
 ├── output/
-│   ├── OutputFormatter         # 接口 + 工厂方法
+│   ├── OutputFormatter         # 接口 + 工厂方法（支持 markdown/json/csv/agent-json）
 │   ├── MarkdownFormatter       # 默认，AI 友好的 Markdown 表格
 │   ├── JsonFormatter           # JSON 数组输出
-│   └── CsvFormatter            # CSV 输出
+│   ├── CsvFormatter            # CSV 输出
+│   ├── AgentJsonFormatter      # 结构化 JSON 信封输出（status + data + meta）
+│   ├── AgentResult             # 非表格命令的 JSON 结果封装（conn list、exec 等）
+│   └── ErrorCode               # 错误码枚举（SAFETY_BLOCKED、CONNECTION_FAILED 等）
 └── safety/
     ├── SqlAnalyzer             # SQL 解析，分类为 SAFE/WARNING/DANGEROUS/BLOCKED
-    └── SafetyGuard             # 安全级别控制：strict(仅SELECT) / normal(默认) / none
+    ├── SafetyGuard             # 安全级别控制：strict(仅SELECT) / normal(默认) / none
+    └── SafetyException         # 安全异常，携带 ErrorCode
 ```
 
 ## 关键设计模式
@@ -82,6 +86,9 @@ src/main/java/com/sqlcli/
 - **版本管理**：`gradle.properties` → manifest `Implementation-Version` → `Version.java`
 - **安全级别**：连接级可覆盖全局配置，strict/normal/none 三档
 - **自动行数限制**：SELECT 默认限制 500 行，通过各 dialect 的 `wrapLimit()` 实现
+- **Schema 自动解析**：Meta 子命令未指定 `-d` 时自动使用连接的 `db` 字段作为 schema 过滤
+- **Agent-JSON 输出**：`--format agent-json` 返回 `{status, data, meta}` 结构化信封，错误也包含 `error_code`
+- **统一错误处理**：所有命令通过 `CliErrorHandler` 集中处理，JSON 模式输出结构化错误
 
 ## 配置文件位置
 

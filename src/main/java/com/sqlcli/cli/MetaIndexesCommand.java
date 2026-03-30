@@ -20,6 +20,9 @@ public class MetaIndexesCommand implements Runnable {
     @Option(names = {"-t", "--table"}, required = true, description = "Table name")
     private String table;
 
+    @Option(names = {"-d", "--database"}, description = "Database/schema name")
+    private String database;
+
     @Override
     public void run() {
         ConfigManager cm = new ConfigManager();
@@ -28,10 +31,11 @@ public class MetaIndexesCommand implements Runnable {
 
         try (Connection conn = connMgr.connect(resolved)) {
             MetaExecutor executor = new MetaExecutor();
-            OutputFormatter formatter = OutputFormatter.create(cm.load().getDefaults().getOutputFormat());
-            System.out.println(executor.listIndexes(conn, null, table, formatter));
+            OutputFormatter formatter = parent.resolveFormatter(cm);
+            String schema = parent.resolveEffectiveSchema(database, resolved);
+            System.out.println(executor.listIndexes(conn, schema, table, formatter));
         } catch (Exception e) {
-            System.err.println("[ERROR] " + e.getMessage());
+            CliErrorHandler.handleError(e, parent.format);
         }
     }
 }

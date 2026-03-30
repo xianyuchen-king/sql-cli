@@ -28,10 +28,11 @@ public class MetaTablesCommand implements Runnable {
 
         try (Connection conn = connMgr.connect(resolved)) {
             MetaExecutor executor = new MetaExecutor();
-            OutputFormatter formatter = OutputFormatter.create(cm.load().getDefaults().getOutputFormat());
-            System.out.println(executor.listTables(conn, database, formatter));
+            OutputFormatter formatter = parent.resolveFormatter(cm);
+            String schema = parent.resolveEffectiveSchema(database, resolved);
+            System.out.println(executor.listTables(conn, schema, formatter));
         } catch (Exception e) {
-            System.err.println("[ERROR] " + e.getMessage());
+            CliErrorHandler.handleError(e, parent.format);
         }
     }
 }

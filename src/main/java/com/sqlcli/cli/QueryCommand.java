@@ -51,7 +51,7 @@ public class QueryCommand implements Runnable {
     @Option(names = {"--driver-class"}, description = "Driver class name")
     private String driverClass;
 
-    @Option(names = {"-f", "--format"}, description = "Output format: markdown/json/csv")
+    @Option(names = {"-f", "--format"}, description = "Output format: markdown/json/csv/agent-json")
     private String format;
 
     @Option(names = {"--limit"}, type = Integer.class, description = "Max rows to return")
@@ -96,7 +96,7 @@ public class QueryCommand implements Runnable {
                 System.out.println(result);
             }
         } catch (Exception e) {
-            System.err.println("[ERROR] " + e.getMessage());
+            CliErrorHandler.handleError(e, outputFormat);
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.sqlcli.executor;
 
+import com.sqlcli.output.AgentJsonFormatter;
+import com.sqlcli.output.JsonFormatter;
 import com.sqlcli.output.OutputFormatter;
 
 import java.sql.Connection;
@@ -45,9 +47,18 @@ public class QueryExecutor {
 
                 long elapsed = System.nanoTime() - start;
                 double seconds = elapsed / 1_000_000_000.0;
+
+                // For structured JSON formats, include timing in the envelope (no plaintext suffix)
+                if (formatter instanceof AgentJsonFormatter ajf) {
+                    return ajf.formatQueryEnvelope(columns, rows, seconds);
+                }
+                if (formatter instanceof JsonFormatter) {
+                    return formatter.formatQuery(columns, rows);
+                }
+
+                // For markdown/csv, append plaintext summary as before
                 String summary = rows.size() + " row" + (rows.size() != 1 ? "s" : "")
                         + " in set (" + String.format("%.2f", seconds) + "s)";
-
                 return formatter.formatQuery(columns, rows) + "\n" + summary;
             }
         }

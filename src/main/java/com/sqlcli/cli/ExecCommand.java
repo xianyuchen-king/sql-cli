@@ -4,6 +4,7 @@ import com.sqlcli.config.AppConfig;
 import com.sqlcli.config.ConfigManager;
 import com.sqlcli.config.ConnectionConfig;
 import com.sqlcli.connection.ConnectionManager;
+import com.sqlcli.output.AgentResult;
 import com.sqlcli.safety.SafetyGuard;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
@@ -11,6 +12,7 @@ import picocli.CommandLine.Option;
 
 import java.sql.Connection;
 import java.sql.Statement;
+import java.util.Map;
 
 @Command(name = "exec", description = "Execute DDL/DML statement")
 public class ExecCommand implements Runnable {
@@ -20,6 +22,9 @@ public class ExecCommand implements Runnable {
 
     @Option(names = {"-c", "--connection"}, description = "Connection name")
     private String connection;
+
+    @Option(names = {"-f", "--format"}, description = "Output format: markdown/json/agent-json")
+    private String format;
 
     @Option(names = {"--url"}, description = "JDBC URL")
     private String url;
@@ -67,10 +72,14 @@ public class ExecCommand implements Runnable {
         try (Connection conn = connMgr.connect(resolved)) {
             try (Statement stmt = conn.createStatement()) {
                 int affected = stmt.executeUpdate(validatedSql);
-                System.out.println("[DONE] " + affected + " row(s) affected.");
+                if (CliErrorHandler.isJsonFormat(format)) {
+                    System.out.println(AgentResult.ok(Map.of("affected_rows", affected)).toJson());
+                } else {
+                    System.out.println("[DONE] " + affected + " row(s) affected.");
+                }
             }
         } catch (Exception e) {
-            System.err.println("[ERROR] " + e.getMessage());
+            CliErrorHandler.handleError(e, format);
         }
     }
 }

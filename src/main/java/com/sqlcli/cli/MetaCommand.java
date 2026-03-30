@@ -3,6 +3,7 @@ package com.sqlcli.cli;
 import com.sqlcli.config.ConnectionConfig;
 import com.sqlcli.config.ConfigManager;
 import com.sqlcli.connection.ConnectionManager;
+import com.sqlcli.output.OutputFormatter;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -19,6 +20,9 @@ public class MetaCommand implements Runnable {
 
     @Option(names = {"-c", "--connection"}, description = "Connection name")
     protected String connection;
+
+    @Option(names = {"-f", "--format"}, description = "Output format: markdown/json/csv/agent-json")
+    protected String format;
 
     @Option(names = {"--url"}, description = "JDBC URL")
     protected String url;
@@ -52,6 +56,24 @@ public class MetaCommand implements Runnable {
         ConnectionManager connMgr = new ConnectionManager(cm);
         ConnectionOptions opts = new ConnectionOptions(cm, connMgr);
         return opts.buildInlineConfig(type, host, port, user, password, db, url, driver, driverClass);
+    }
+
+    /**
+     * Resolve effective schema: use subcommand's -d if provided, otherwise fall back to connection's db.
+     */
+    protected String resolveEffectiveSchema(String subcommandSchema, ConnectionConfig resolved) {
+        if (subcommandSchema != null && !subcommandSchema.isBlank()) {
+            return subcommandSchema;
+        }
+        return resolved.getDb();
+    }
+
+    /**
+     * Resolve output formatter: use --format if provided, otherwise fall back to config default.
+     */
+    protected OutputFormatter resolveFormatter(ConfigManager cm) {
+        String fmt = format != null ? format : cm.load().getDefaults().getOutputFormat();
+        return OutputFormatter.create(fmt);
     }
 
     @Override

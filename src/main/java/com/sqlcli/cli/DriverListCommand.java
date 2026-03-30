@@ -2,13 +2,21 @@ package com.sqlcli.cli;
 
 import com.sqlcli.config.ConfigManager;
 import com.sqlcli.connection.DriverLoader;
+import com.sqlcli.output.AgentResult;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Command(name = "list", description = "List installed drivers")
 public class DriverListCommand implements Runnable {
+
+    @Option(names = {"-f", "--format"}, description = "Output format: markdown/json/agent-json")
+    private String format;
 
     @Override
     public void run() {
@@ -17,7 +25,23 @@ public class DriverListCommand implements Runnable {
         List<File> drivers = loader.listDrivers();
 
         if (drivers.isEmpty()) {
-            System.out.println("No drivers installed. Use 'sql-cli driver install <type>' to install.");
+            if (CliErrorHandler.isJsonFormat(format)) {
+                System.out.println(AgentResult.ok(List.of()).toJson());
+            } else {
+                System.out.println("No drivers installed. Use 'sql-cli driver install <type>' to install.");
+            }
+            return;
+        }
+
+        if (CliErrorHandler.isJsonFormat(format)) {
+            List<Map<String, Object>> items = new ArrayList<>();
+            for (File driver : drivers) {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("file", driver.getName());
+                item.put("size", formatSize(driver.length()));
+                items.add(item);
+            }
+            System.out.println(AgentResult.ok(items).toJson());
             return;
         }
 

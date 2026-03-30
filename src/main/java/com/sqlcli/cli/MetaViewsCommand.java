@@ -28,10 +28,11 @@ public class MetaViewsCommand implements Runnable {
 
         try (Connection conn = connMgr.connect(resolved)) {
             MetaExecutor executor = new MetaExecutor();
-            OutputFormatter formatter = OutputFormatter.create(cm.load().getDefaults().getOutputFormat());
-            System.out.println(executor.listViews(conn, database, formatter));
+            OutputFormatter formatter = parent.resolveFormatter(cm);
+            String schema = parent.resolveEffectiveSchema(database, resolved);
+            System.out.println(executor.listViews(conn, schema, formatter));
         } catch (Exception e) {
-            System.err.println("[ERROR] " + e.getMessage());
+            CliErrorHandler.handleError(e, parent.format);
         }
     }
 }

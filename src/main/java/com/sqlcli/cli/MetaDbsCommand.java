@@ -24,10 +24,10 @@ public class MetaDbsCommand implements Runnable {
 
         try (Connection conn = connMgr.connect(resolved)) {
             MetaExecutor executor = new MetaExecutor();
-            OutputFormatter formatter = OutputFormatter.create(cm.load().getDefaults().getOutputFormat());
+            OutputFormatter formatter = parent.resolveFormatter(cm);
             System.out.println(executor.listDatabases(conn, formatter));
         } catch (Exception e) {
-            System.err.println("[ERROR] " + e.getMessage());
+            CliErrorHandler.handleError(e, parent.format);
         }
     }
 }

@@ -4,14 +4,23 @@ import com.sqlcli.config.AppConfig;
 import com.sqlcli.config.ConfigManager;
 import com.sqlcli.config.ConnectionConfig;
 import com.sqlcli.config.EncryptionService;
+import com.sqlcli.output.AgentResult;
+import com.sqlcli.output.ErrorCode;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Command(name = "show", description = "Show connection details")
 public class ConnShowCommand implements Runnable {
 
     @Parameters(paramLabel = "NAME", description = "Connection name")
     private String name;
+
+    @Option(names = {"-f", "--format"}, description = "Output format: markdown/json/agent-json")
+    private String format;
 
     @Override
     public void run() {
@@ -20,7 +29,36 @@ public class ConnShowCommand implements Runnable {
         ConnectionConfig cc = config.getConnection(name);
 
         if (cc == null) {
-            System.err.println("[ERROR] Connection not found: " + name);
+            if (CliErrorHandler.isJsonFormat(format)) {
+                System.out.println(AgentResult.error(ErrorCode.CONNECTION_NOT_FOUND, "Connection not found: " + name).toJson());
+            } else {
+                System.err.println("[ERROR] Connection not found: " + name);
+            }
+            return;
+        }
+
+        if (CliErrorHandler.isJsonFormat(format)) {
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("name", cc.getName());
+            data.put("type", cc.getType());
+            data.put("group", cc.getGroup());
+            data.put("tags", cc.getTags());
+            data.put("safety", cc.getSafetyLevel() != null ? cc.getSafetyLevel() : "normal");
+            if (cc.isDirectUrl()) {
+                data.put("url", cc.getUrl());
+            } else {
+                data.put("host", cc.getHost());
+                data.put("port", cc.getPort());
+                data.put("database", cc.getDb());
+            }
+            data.put("user", cc.getUser());
+            data.put("password", EncryptionService.maskPassword(cc.getPassword()));
+            data.put("driver", cc.getDriver());
+            data.put("driver_class", cc.getDriverClass());
+            if (cc.getParams() != null && !cc.getParams().isEmpty()) {
+                data.put("params", cc.getParams());
+            }
+            System.out.println(AgentResult.ok(data).toJson());
             return;
         }
 

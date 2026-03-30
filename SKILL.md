@@ -118,6 +118,9 @@ sql-cli query "SELECT * FROM users LIMIT 10" -c mydb
 sql-cli query "SELECT * FROM users" -c mydb -f json
 sql-cli query "SELECT * FROM users" -c mydb -f csv
 
+# Agent-optimized structured JSON (includes status, meta, timing in envelope)
+sql-cli query "SELECT * FROM users" -c mydb -f agent-json
+
 # Custom row limit
 sql-cli query "SELECT * FROM users" -c mydb --limit 100
 sql-cli query "SELECT * FROM users" -c mydb --no-limit
@@ -152,21 +155,26 @@ sql-cli exec "TRUNCATE TABLE temp_data" -c mydb --confirm
 # List databases/schemas
 sql-cli meta dbs -c mydb
 
-# List tables
+# List tables (auto-uses connection's db as schema when -d is omitted)
 sql-cli meta tables -c mydb
 sql-cli meta tables -c mydb -d schema_name
 
-# List columns
+# List columns (auto-uses connection's db as schema)
 sql-cli meta columns -t users -c mydb
 
-# List indexes
+# List indexes (auto-uses connection's db as schema)
 sql-cli meta indexes -t users -c mydb
+sql-cli meta indexes -t users -c mydb -d schema_name
 
 # List views
 sql-cli meta views -c mydb
 
 # Comprehensive table description (columns + PK + indexes + foreign keys)
 sql-cli meta describe -t users -c mydb
+
+# Metadata in JSON format (all meta subcommands support --format)
+sql-cli meta describe -t users -c mydb -f json
+sql-cli meta tables -c mydb -f agent-json
 ```
 
 ### 7. Export data
@@ -203,7 +211,9 @@ sql-cli import -t users -c mydb -f /tmp/users.csv --batch-size 1000 --on-error s
 sql-cli conn list                     # List all connections
 sql-cli conn list --group prod        # Filter by group
 sql-cli conn list --tag mysql         # Filter by tag
+sql-cli conn list -f json             # List connections in JSON format
 sql-cli conn show mydb                # Show connection details
+sql-cli conn show mydb -f json        # Show details in JSON format
 sql-cli conn update mydb --port 3307  # Update connection
 sql-cli conn remove mydb              # Remove connection
 sql-cli conn group list               # List groups
@@ -288,6 +298,37 @@ sql-cli driver install mysql
 sql-cli conn test mydb -v
 ```
 
+## Agent Usage Tips
+
+When using sql-cli programmatically (e.g., via AI agents), follow these patterns:
+
+### Use `-f json` or `-f agent-json` for parseable output
+- `json`: Returns a raw JSON array of row objects (for queries) or table data (for metadata)
+- `agent-json`: Returns a structured envelope with `status`, `data`, and `meta` fields (recommended for agents)
+- All commands support `--format` / `-f`: `query`, `exec`, `meta`, `conn list`, `conn show`, `conn test`, `driver list`
+- In JSON mode, errors are also structured: `{"status":"error","error_code":"SAFETY_BLOCKED","message":"..."}`
+
+### Schema auto-resolution for meta commands
+When a connection has a `db` configured, `meta` subcommands automatically use it as the schema filter:
+```bash
+# No need for -d if the connection already has --db configured
+sql-cli meta describe -t mytable -c myconn
+sql-cli meta tables -c myconn
+```
+Only use `-d` when you need to inspect a different schema than the connection's default database.
+
+### Error codes in JSON mode
+When `--format json` or `--format agent-json` is used, errors include a machine-readable `error_code`:
+- `SAFETY_BLOCKED` - SQL blocked by safety rules (e.g., DROP DATABASE, DELETE without WHERE)
+- `SAFETY_DANGEROUS` - Dangerous SQL requires `--confirm`
+- `SAFETY_STRICT_MODE` - Non-SELECT blocked in strict mode
+- `CONNECTION_NOT_FOUND` - Unknown connection name
+- `CONNECTION_FAILED` - Connection refused or unreachable
+- `QUERY_TIMEOUT` - Query exceeded timeout
+- `DRIVER_NOT_FOUND` - JDBC driver jar not installed
+- `TABLE_NOT_FOUND` - Table does not exist
+- `DUPLICATE_KEY` - Unique constraint violation
+
 ## Safety Rules
 
 1. **Strict mode connections**: Only SELECT and metadata queries allowed
@@ -325,4 +366,4 @@ sql-cli conn test mydb -v
 | `--driver-class` | JDBC Driver class name |
 | `--timeout` | Query timeout in seconds |
 | `-o, --output` | Save query results to file |
-| `-f, --format` | Output format: markdown/json/csv |
+| `-f, --format` | Output format: markdown/json/csv/agent-json |

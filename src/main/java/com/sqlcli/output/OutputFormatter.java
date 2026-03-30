@@ -11,13 +11,14 @@ public interface OutputFormatter {
     String formatTable(List<String> columns, List<List<Object>> rows);
 
     enum Format {
-        MARKDOWN, JSON, CSV
+        MARKDOWN, JSON, CSV, AGENT_JSON
     }
 
     static OutputFormatter create(Format format) {
         return switch (format) {
             case JSON -> new JsonFormatter();
             case CSV -> new CsvFormatter();
+            case AGENT_JSON -> new AgentJsonFormatter();
             default -> new MarkdownFormatter();
         };
     }
@@ -27,6 +28,7 @@ public interface OutputFormatter {
         return switch (formatName.toLowerCase()) {
             case "json" -> new JsonFormatter();
             case "csv" -> new CsvFormatter();
+            case "agent-json" -> new AgentJsonFormatter();
             default -> new MarkdownFormatter();
         };
     }

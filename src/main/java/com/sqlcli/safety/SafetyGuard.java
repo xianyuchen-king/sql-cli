@@ -4,13 +4,14 @@ import com.sqlcli.config.AppConfig;
 import com.sqlcli.config.ConnectionConfig;
 import com.sqlcli.dialect.Dialect;
 import com.sqlcli.dialect.DialectFactory;
+import com.sqlcli.output.ErrorCode;
 
 public class SafetyGuard {
 
     private final SqlAnalyzer analyzer = new SqlAnalyzer();
 
     /**
-     * Validate SQL against safety rules. Throws RuntimeException if blocked.
+     * Validate SQL against safety rules. Throws SafetyException if blocked.
      * @return the (possibly modified) SQL to execute
      */
     public String validate(String sql, ConnectionConfig config, boolean confirm,
@@ -21,7 +22,8 @@ public class SafetyGuard {
 
         if ("strict".equalsIgnoreCase(effectiveLevel)) {
             if (!analyzer.isSelect(sql)) {
-                throw new RuntimeException("[BLOCKED] Connection '" + config.getName()
+                throw new SafetyException(ErrorCode.SAFETY_STRICT_MODE,
+                        "[BLOCKED] Connection '" + config.getName()
                         + "' is in strict mode. Only SELECT and metadata queries are allowed.");
             }
         }
@@ -36,10 +38,10 @@ public class SafetyGuard {
 
         switch (risk) {
             case BLOCKED:
-                throw new RuntimeException(analyzer.getMessage(risk, sql));
+                throw new SafetyException(ErrorCode.SAFETY_BLOCKED, analyzer.getMessage(risk, sql));
             case DANGEROUS:
                 if (!confirm) {
-                    throw new RuntimeException(analyzer.getMessage(risk, sql));
+                    throw new SafetyException(ErrorCode.SAFETY_DANGEROUS, analyzer.getMessage(risk, sql));
                 }
                 break;
             case WARNING:
