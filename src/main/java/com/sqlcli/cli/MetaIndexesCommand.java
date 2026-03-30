@@ -34,13 +34,15 @@ public class MetaIndexesCommand implements Runnable {
         String connName = opts.getConnection() != null ? opts.getConnection() : parent.opts.getConnection();
         String resolvedFmt = opts.getFormat() != null ? opts.resolveFormat(cm) : parent.opts.resolveFormat(cm);
         ConnectionConfig inlineConfig = opts.getConnection() != null ? opts.buildInlineConfig() : parent.opts.buildInlineConfig();
-        ConnectionConfig resolved = connMgr.resolveConnection(connName, inlineConfig);
 
-        try (Connection conn = connMgr.connect(resolved)) {
-            MetaExecutor executor = new MetaExecutor();
-            OutputFormatter formatter = OutputFormatter.create(resolvedFmt);
-            String schema = resolveSchema(resolved);
-            System.out.println(executor.listIndexes(conn, schema, table, formatter));
+        try {
+            ConnectionConfig resolved = connMgr.resolveConnection(connName, inlineConfig);
+            try (Connection conn = connMgr.connect(resolved)) {
+                MetaExecutor executor = new MetaExecutor();
+                OutputFormatter formatter = OutputFormatter.create(resolvedFmt);
+                String schema = resolveSchema(resolved);
+                System.out.println(executor.listIndexes(conn, schema, table, formatter));
+            }
         } catch (Exception e) {
             CliErrorHandler.handleError(e, resolvedFmt);
         }

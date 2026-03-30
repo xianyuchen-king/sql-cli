@@ -1,6 +1,7 @@
 package com.sqlcli.executor;
 
 import com.sqlcli.dialect.Dialect;
+import com.sqlcli.output.AgentJsonFormatter;
 import com.sqlcli.output.OutputFormatter;
 
 import java.sql.Connection;
@@ -9,7 +10,9 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MetaExecutor {
 
@@ -72,11 +75,9 @@ public class MetaExecutor {
      */
     public String describeTable(Connection conn, String schema, String table, OutputFormatter formatter)
             throws Exception {
-        StringBuilder sb = new StringBuilder();
         DatabaseMetaData meta = conn.getMetaData();
 
-        // Columns
-        sb.append(formatter.formatTable(List.of("Column"), List.of(List.of("---"))));
+        // Collect columns
         List<String> colNames = List.of("Column", "Type", "Nullable", "Default", "PK");
         List<List<Object>> colRows = new ArrayList<>();
         try (ResultSet rs = meta.getColumns(schema, null, table, "%")) {
@@ -105,10 +106,7 @@ public class MetaExecutor {
             }
         }
 
-        sb.append("Columns:\n");
-        sb.append(formatter.formatTable(colNames, colRows)).append("\n");
-
-        // Indexes
+        // Collect indexes
         List<String> idxNames = List.of("Index", "Column", "Unique", "Type");
         List<List<Object>> idxRows = new ArrayList<>();
         try (ResultSet rs = meta.getIndexInfo(schema, null, table, false, false)) {
@@ -121,12 +119,8 @@ public class MetaExecutor {
                 ));
             }
         }
-        if (!idxRows.isEmpty()) {
-            sb.append("Indexes:\n");
-            sb.append(formatter.formatTable(idxNames, idxRows)).append("\n");
-        }
 
-        // Foreign keys
+        // Collect foreign keys
         List<String> fkNames = List.of("FK Name", "Column", "Ref Table", "Ref Column");
         List<List<Object>> fkRows = new ArrayList<>();
         try (ResultSet rs = meta.getImportedKeys(schema, null, table)) {
@@ -139,12 +133,88 @@ public class MetaExecutor {
                 ));
             }
         }
+
+        // For structured JSON output, build a single combined envelope
+        if (formatter instanceof AgentJsonFormatter) {
+            return buildDescribeJson(table, colNames, colRows, idxNames, idxRows, fkNames, fkRows);
+        }
+
+        // For plaintext/markdown output, use section headers
+        StringBuilder sb = new StringBuilder();
+        sb.append("Columns:\n");
+        sb.append(formatter.formatTable(colNames, colRows)).append("\n");
+        if (!idxRows.isEmpty()) {
+            sb.append("Indexes:\n");
+            sb.append(formatter.formatTable(idxNames, idxRows)).append("\n");
+        }
         if (!fkRows.isEmpty()) {
             sb.append("Foreign Keys:\n");
             sb.append(formatter.formatTable(fkNames, fkRows)).append("\n");
         }
-
         return sb.toString().trim();
+    }
+
+    /**
+     * Build a single JSON envelope for describe output with all sections combined.
+     */
+    private String buildDescribeJson(String table, List<String> colNames, List<List<Object>> colRows,
+                                      List<String> idxNames, List<List<Object>> idxRows,
+                                      List<String> fkNames, List<List<Object>> fkRows) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+        sb.append("  \"status\": \"ok\",\n");
+        sb.append("  \"data\": {\n");
+        sb.append("    \"table\": \"").append(escape(table)).append("\",\n");
+        sb.append("    \"columns\": ").append(buildSectionArray(colNames, colRows));
+        if (!idxRows.isEmpty()) {
+            sb.append(",\n    \"indexes\": ").append(buildSectionArray(idxNames, idxRows));
+        }
+        if (!fkRows.isEmpty()) {
+            sb.append(",\n    \"foreign_keys\": ").append(buildSectionArray(fkNames, fkRows));
+        }
+        sb.append("\n  },\n");
+        sb.append("  \"meta\": {\n");
+        sb.append("    \"column_count\": ").append(colRows.size());
+        sb.append(",\n    \"index_count\": ").append(idxRows.size());
+        sb.append(",\n    \"fk_count\": ").append(fkRows.size());
+        sb.append("\n  }\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private String buildSectionArray(List<String> columns, List<List<Object>> rows) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int i = 0; i < rows.size(); i++) {
+            if (i > 0) sb.append(",");
+            sb.append("\n      {");
+            List<Object> row = rows.get(i);
+            for (int j = 0; j < columns.size(); j++) {
+                if (j > 0) sb.append(",");
+                sb.append("\n        \"").append(escape(columns.get(j))).append("\": ");
+                Object val = j < row.size() ? row.get(j) : null;
+                sb.append(valueToJson(val));
+            }
+            sb.append("\n      }");
+        }
+        if (!rows.isEmpty()) sb.append("\n    ");
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private String valueToJson(Object val) {
+        if (val == null) return "null";
+        if (val instanceof Number) return val.toString();
+        if (val instanceof Boolean) return val.toString();
+        return "\"" + escape(val.toString()) + "\"";
+    }
+
+    private String escape(String s) {
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     private String resultSetToTable(ResultSet rs, OutputFormatter formatter, List<String> displayColumns)
