@@ -1,6 +1,6 @@
 {
   "name": "@black-cyq/sql-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A CLI tool for connecting to relational databases (MySQL, Oracle, PostgreSQL, SQLite, etc.) via JDBC. Designed for AI coding agents like Claude Code.",
   "bin": {
     "sql-cli": "./bin/sql-cli.js"
