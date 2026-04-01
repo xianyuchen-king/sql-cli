@@ -26,6 +26,8 @@ CI：打 tag 自动构建、测试、创建 GitHub Release、发布 npm。
 ./gradlew jacocoTestReport    # 生成覆盖率报告 → build/reports/jacoco/
 ```
 
+**⚠️ 发版必须同时更新两个文件的版本号：** `gradle.properties`（JAR 版本）和 `package.json`（npm 版本）。遗漏任一会导致 CI 发布失败。
+
 ## 代码结构
 
 ```
