@@ -1,5 +1,6 @@
 package com.sqlcli.shell;
 
+import com.sqlcli.dialect.Dialect;
 import com.sqlcli.output.OutputFormatter;
 
 /**
@@ -14,6 +15,7 @@ public class ShellState {
     private boolean autoLimit;
     private boolean exitRequested = false;
     private String switchToConnection = null;  // For \c command
+    private Dialect dialect;
 
     public ShellState(OutputFormatter.Format defaultFormat, int defaultMaxRows, boolean autoLimit) {
         this.outputFormat = defaultFormat;
@@ -82,6 +84,9 @@ public class ShellState {
     public boolean isSwitchConnectionRequested() {
         return switchToConnection != null;
     }
+
+    public Dialect getDialect() { return dialect; }
+    public void setDialect(Dialect dialect) { this.dialect = dialect; }
 
     public OutputFormatter createFormatter() {
         return OutputFormatter.create(outputFormat);

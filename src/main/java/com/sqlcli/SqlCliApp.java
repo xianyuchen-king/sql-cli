@@ -15,7 +15,8 @@ import picocli.CommandLine.Command;
                 com.sqlcli.cli.DriverCommand.class,
                 com.sqlcli.cli.UpdateCommand.class,
                 com.sqlcli.cli.UninstallCommand.class,
-                com.sqlcli.cli.ShellCommand.class
+                com.sqlcli.cli.ShellCommand.class,
+                com.sqlcli.cli.ExploreCommand.class
         })
 public class SqlCliApp implements Runnable {
 

@@ -33,7 +33,8 @@ public class MetaDbsCommand implements Runnable {
             try (Connection conn = connMgr.connect(resolved)) {
                 MetaExecutor executor = new MetaExecutor();
                 OutputFormatter formatter = OutputFormatter.create(resolvedFmt);
-                System.out.println(executor.listDatabases(conn, formatter));
+                com.sqlcli.dialect.Dialect dialect = com.sqlcli.dialect.DialectFactory.getDialect(resolved.getType(), cm.load());
+                System.out.println(executor.listDatabases(conn, dialect, formatter));
             }
         } catch (Exception e) {
             CliErrorHandler.handleError(e, resolvedFmt);

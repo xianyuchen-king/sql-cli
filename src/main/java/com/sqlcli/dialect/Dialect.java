@@ -3,6 +3,9 @@ package com.sqlcli.dialect;
 import com.sqlcli.config.ConnectionConfig;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +37,33 @@ public interface Dialect {
      * Get default driver class name for this database type.
      */
     String getDefaultDriverClass();
+
+    /**
+     * Get the label for "database" in this dialect's terminology.
+     * Oracle uses "Schema", most others use "Database".
+     */
+    default String getDatabaseLabel() {
+        return "Database";
+    }
+
+    /**
+     * List databases (or schemas) accessible via this connection.
+     * Default implementation uses DatabaseMetaData.getCatalogs().
+     * Dialects like Oracle override this to use getSchemas() instead.
+     */
+    default List<String[]> listDatabases(Connection conn) throws Exception {
+        DatabaseMetaData meta = conn.getMetaData();
+        List<String[]> results = new ArrayList<>();
+        try (ResultSet rs = meta.getCatalogs()) {
+            while (rs.next()) {
+                String catalog = rs.getString("TABLE_CAT");
+                if (catalog != null) {
+                    results.add(new String[]{catalog});
+                }
+            }
+        }
+        return results;
+    }
 
     /**
      * Table metadata record.

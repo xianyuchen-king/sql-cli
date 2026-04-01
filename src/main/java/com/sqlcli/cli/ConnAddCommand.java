@@ -134,12 +134,7 @@ public class ConnAddCommand implements Runnable {
         cc.setSafetyLevel(connSafety);
 
         if (connPassword != null && !connPassword.isEmpty()) {
-            try {
-                cc.setPassword(cm.getEncryptionService().encrypt(connPassword));
-            } catch (Exception e) {
-                System.err.println("[WARN] Failed to encrypt password: " + e.getMessage());
-                cc.setPassword(connPassword);
-            }
+            cc.setPassword(ConfigManager.tryEncryptWithWarning(cm, connPassword));
         }
 
         if (config.getConnections() == null) {
@@ -175,12 +170,7 @@ public class ConnAddCommand implements Runnable {
         cc.setSafetyLevel(safetyLevel);
 
         if (password != null && !password.isEmpty()) {
-            try {
-                cc.setPassword(cm.getEncryptionService().encrypt(password));
-            } catch (Exception e) {
-                System.err.println("[WARN] Failed to encrypt password: " + e.getMessage());
-                cc.setPassword(password);
-            }
+            cc.setPassword(ConfigManager.tryEncryptWithWarning(cm, password));
         }
 
         if (config.getConnections() == null) {

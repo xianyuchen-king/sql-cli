@@ -1,6 +1,7 @@
 package com.sqlcli.executor;
 
 import com.sqlcli.output.AgentJsonFormatter;
+import com.sqlcli.output.CsvFormatter;
 import com.sqlcli.output.JsonFormatter;
 import com.sqlcli.output.OutputFormatter;
 
@@ -56,10 +57,14 @@ public class QueryExecutor {
                     return formatter.formatQuery(columns, rows);
                 }
 
-                // For markdown/csv, append plaintext summary as before
+                // For markdown/csv, output plaintext summary (position depends on formatter)
                 String summary = rows.size() + " row" + (rows.size() != 1 ? "s" : "")
                         + " in set (" + String.format("%.2f", seconds) + "s)";
-                return formatter.formatQuery(columns, rows) + "\n" + summary;
+                String formatted = formatter.formatQuery(columns, rows);
+                if (formatter instanceof CsvFormatter) {
+                    return formatted + "\n" + summary;
+                }
+                return summary + "\n" + formatted;
             }
         }
     }

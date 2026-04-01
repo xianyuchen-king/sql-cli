@@ -125,12 +125,92 @@ public class DialectFactory {
 
         @Override
         public String wrapLimit(String sql, int maxRows) {
-            // Try generic LIMIT, return null if unsure
+            String prefix = config.getLimitPrefix();
+            String suffix = config.getLimitSuffix();
+
+            if (prefix != null && !prefix.isBlank()) {
+                // Insert after SELECT [DISTINCT]
+                String trimmed = sql.trim();
+                if (trimmed.endsWith(";")) {
+                    trimmed = trimmed.substring(0, trimmed.length() - 1).trim();
+                }
+                String upper = trimmed.toUpperCase();
+                if (upper.startsWith("SELECT DISTINCT ")) {
+                    return trimmed.substring(0, "SELECT DISTINCT ".length())
+                            + prefix.replace("{n}", String.valueOf(maxRows))
+                            + trimmed.substring("SELECT DISTINCT ".length());
+                } else if (upper.startsWith("SELECT ")) {
+                    return "SELECT "
+                            + prefix.replace("{n}", String.valueOf(maxRows))
+                            + trimmed.substring("SELECT ".length());
+                }
+                return null; // Cannot insert prefix
+            }
+
+            if (suffix != null && !suffix.isBlank()) {
+                String trimmed = sql.trim();
+                if (trimmed.endsWith(";")) {
+                    trimmed = trimmed.substring(0, trimmed.length() - 1).trim();
+                }
+                return trimmed + suffix.replace("{n}", String.valueOf(maxRows));
+            }
+
             return null;
         }
 
         @Override
         public boolean hasLimit(String sql) {
+            String pattern = config.getLimitPattern();
+            if (pattern != null && !pattern.isBlank()) {
+                try {
+                    return java.util.regex.Pattern.compile(pattern, java.util.regex.Pattern.CASE_INSENSITIVE)
+                            .matcher(sql).find();
+                } catch (java.util.regex.PatternSyntaxException e) {
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public String getDatabaseLabel() {
+            String label = config.getDatabaseLabel();
+            return (label != null && !label.isBlank()) ? label : "Database";
+        }
+
+        @Override
+        public java.util.List<String[]> listDatabases(java.sql.Connection conn) throws Exception {
+            String method = config.getListDatabasesMethod();
+            if ("schemas".equalsIgnoreCase(method)) {
+                java.sql.DatabaseMetaData meta = conn.getMetaData();
+                java.util.List<String[]> results = new java.util.ArrayList<>();
+                try (java.sql.ResultSet rs = meta.getSchemas()) {
+                    while (rs.next()) {
+                        String schema = rs.getString("TABLE_SCHEM");
+                        if (schema != null && !isSystemSchema(schema, config.getSystemSchemaFilter())) {
+                            results.add(new String[]{schema});
+                        }
+                    }
+                }
+                return results;
+            }
+            // Default: use catalogs (same as Dialect interface default)
+            return Dialect.super.listDatabases(conn);
+        }
+
+        private boolean isSystemSchema(String schema, String filter) {
+            if (filter == null || filter.isBlank()) return false;
+            for (String entry : filter.split(",")) {
+                entry = entry.trim();
+                if (entry.isEmpty()) continue;
+                if (entry.endsWith("%")) {
+                    if (schema.toUpperCase().startsWith(entry.substring(0, entry.length() - 1).toUpperCase())) {
+                        return true;
+                    }
+                } else {
+                    if (schema.equalsIgnoreCase(entry)) return true;
+                }
+            }
             return false;
         }
 

@@ -66,7 +66,8 @@ public class SlashCommandHandler {
     }
 
     private String handleListDatabases(Connection conn, ShellState state) throws Exception {
-        return metaExecutor.listDatabases(conn, state.createFormatter());
+        com.sqlcli.dialect.Dialect dialect = state.getDialect() != null ? state.getDialect() : new com.sqlcli.dialect.GenericDialect();
+        return metaExecutor.listDatabases(conn, dialect, state.createFormatter());
     }
 
     private String handleListViews(Connection conn, ShellState state) throws Exception {

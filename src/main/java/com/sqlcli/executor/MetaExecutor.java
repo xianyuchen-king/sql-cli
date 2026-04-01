@@ -1,6 +1,7 @@
 package com.sqlcli.executor;
 
 import com.sqlcli.dialect.Dialect;
+import com.sqlcli.dialect.GenericDialect;
 import com.sqlcli.output.AgentJsonFormatter;
 import com.sqlcli.output.OutputFormatter;
 
@@ -10,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,13 +19,26 @@ import java.util.Map;
 public class MetaExecutor {
 
     /**
-     * List all databases/schemas.
+     * List all databases/schemas using dialect-specific behavior.
      */
+    public String listDatabases(Connection conn, Dialect dialect, OutputFormatter formatter) throws Exception {
+        List<String[]> rows = dialect.listDatabases(conn);
+        if (rows.isEmpty()) return "(no results)";
+
+        String label = dialect.getDatabaseLabel();
+        List<String> columns = List.of(label);
+        List<List<Object>> data = rows.stream()
+                .map(row -> Arrays.stream(row).map(v -> (Object) v).toList())
+                .toList();
+        return formatter.formatTable(columns, data);
+    }
+
+    /**
+     * @deprecated Use {@link #listDatabases(Connection, Dialect, OutputFormatter)} instead.
+     */
+    @Deprecated
     public String listDatabases(Connection conn, OutputFormatter formatter) throws Exception {
-        DatabaseMetaData meta = conn.getMetaData();
-        try (ResultSet rs = meta.getCatalogs()) {
-            return resultSetToTable(rs, formatter, List.of("Database"));
-        }
+        return listDatabases(conn, new GenericDialect(), formatter);
     }
 
     /**

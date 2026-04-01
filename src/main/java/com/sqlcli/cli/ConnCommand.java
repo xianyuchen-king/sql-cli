@@ -13,7 +13,8 @@ import picocli.CommandLine.Command;
                 ConnGroupCommand.class,
                 ConnTagCommand.class,
                 ConnTypesCommand.class,
-                ConnRegisterTypeCommand.class
+                ConnRegisterTypeCommand.class,
+                ConnRemoveTypeCommand.class
         })
 public class ConnCommand implements Runnable {
     @Override

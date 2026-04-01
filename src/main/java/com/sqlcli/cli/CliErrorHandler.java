@@ -35,13 +35,50 @@ public class CliErrorHandler {
     }
 
     /**
+     * Traverse the cause chain and return the deepest non-null message.
+     * If all messages are null, return null.
+     */
+    private static String getRootMessage(Throwable e) {
+        String deepest = null;
+        Throwable current = e;
+        while (current != null) {
+            if (current.getMessage() != null) {
+                deepest = current.getMessage();
+            }
+            current = current.getCause();
+        }
+        return deepest;
+    }
+
+    /**
      * Classify a generic exception into an ErrorCode.
      */
     private static ErrorCode classifyError(Exception e) {
-        String msg = e.getMessage();
+        String msg = getRootMessage(e);
         if (msg == null) return ErrorCode.UNKNOWN;
 
         String lower = msg.toLowerCase();
+
+        // --- Dialect-specific patterns (checked before generic) ---
+
+        // Oracle errors
+        if (lower.contains("ora-00942")) return ErrorCode.TABLE_NOT_FOUND;
+        if (lower.contains("ora-00904")) return ErrorCode.VALIDATION_ERROR;
+        if (lower.contains("ora-01017")) return ErrorCode.CONNECTION_FAILED;
+        if (lower.contains("ora-12154")) return ErrorCode.CONNECTION_FAILED;
+        if (lower.contains("ora-01031")) return ErrorCode.PERMIT_DENIED;
+        if (lower.contains("ora-00001")) return ErrorCode.DUPLICATE_KEY;
+
+        // DM (Dameng) Chinese messages
+        if (lower.contains("无效的表名") || lower.contains("无效的表或视图名") || lower.contains("无效的对象名")) return ErrorCode.TABLE_NOT_FOUND;
+
+        // PostgreSQL: "relation \"xxx\" does not exist"
+        if (lower.contains("relation") && lower.contains("does not exist")) return ErrorCode.TABLE_NOT_FOUND;
+
+        // SQL Server: "Invalid object name 'xxx'"
+        if (lower.contains("invalid object name")) return ErrorCode.TABLE_NOT_FOUND;
+
+        // --- Generic patterns ---
 
         // Connection not found
         if (lower.contains("connection") && (lower.contains("not found") || lower.contains("unknown"))) {
@@ -79,13 +116,13 @@ public class CliErrorHandler {
 
         // Table not found
         if (lower.contains("table") && (lower.contains("not found") || lower.contains("doesn't exist")
-                || lower.contains("does not exist"))) {
+                || lower.contains("does not exist") || lower.contains("unknown table"))) {
             return ErrorCode.TABLE_NOT_FOUND;
         }
 
         // Syntax error
         if (lower.contains("syntax error") || lower.contains("sqlsyntaxerror")
-                || lower.contains("invalid sql") || lower.contains("ora-009")
+                || lower.contains("invalid sql")
                 || lower.contains("you have an error in your sql syntax")) {
             return ErrorCode.VALIDATION_ERROR;
         }
@@ -95,8 +132,16 @@ public class CliErrorHandler {
             return ErrorCode.DUPLICATE_KEY;
         }
 
-        // Config error
-        if (lower.contains("config") || lower.contains("yaml") || lower.contains("parse")) {
+        // Config error (narrowed patterns)
+        if (lower.contains("failed to load config")
+                || lower.contains("failed to parse config")
+                || lower.contains("invalid config")
+                || lower.contains("failed to save config")) {
+            return ErrorCode.CONFIG_ERROR;
+        }
+
+        // Broader YAML/parse fallback for config issues
+        if (lower.contains("yaml") || lower.contains("parse")) {
             return ErrorCode.CONFIG_ERROR;
         }
 

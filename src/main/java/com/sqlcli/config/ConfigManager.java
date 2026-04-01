@@ -19,6 +19,8 @@ public class ConfigManager {
     private static final String DEFAULT_DIR = ".sql-cli";
     private static final String CONFIG_FILE = "config.yml";
 
+    private static volatile boolean encryptionWarned = false;
+
     private final Path configDir;
     private final Path configFile;
     private AppConfig config;
@@ -108,6 +110,25 @@ public class ConfigManager {
     }
 
     /**
+     * Try to encrypt the plaintext password. On first failure, print a one-time WARN
+     * with the env var hint and return plaintext. On subsequent failures, silently
+     * return plaintext. On success, return the encrypted string.
+     */
+    public static String tryEncryptWithWarning(ConfigManager cm, String plaintext) {
+        try {
+            return cm.getEncryptionService().encrypt(plaintext);
+        } catch (Exception e) {
+            if (!encryptionWarned) {
+                encryptionWarned = true;
+                System.err.println("[WARN] Password encryption failed: " + e.getMessage()
+                        + ". Password will be stored in plain text. "
+                        + "Set environment variable SQL_CLI_SECRET to enable encryption.");
+            }
+            return plaintext;
+        }
+    }
+
+    /**
      * Initialize config directory structure.
      */
     public void init() {
@@ -158,6 +179,12 @@ public class ConfigManager {
                 ct.setDriver((String) m.get("driver"));
                 ct.setUrlTemplate((String) m.get("urlTemplate"));
                 if (m.containsKey("defaultPort")) ct.setDefaultPort(((Number) m.get("defaultPort")).intValue());
+                if (m.containsKey("limitSuffix")) ct.setLimitSuffix((String) m.get("limitSuffix"));
+                if (m.containsKey("limitPrefix")) ct.setLimitPrefix((String) m.get("limitPrefix"));
+                if (m.containsKey("limitPattern")) ct.setLimitPattern((String) m.get("limitPattern"));
+                if (m.containsKey("databaseLabel")) ct.setDatabaseLabel((String) m.get("databaseLabel"));
+                if (m.containsKey("listDatabasesMethod")) ct.setListDatabasesMethod((String) m.get("listDatabasesMethod"));
+                if (m.containsKey("systemSchemaFilter")) ct.setSystemSchemaFilter((String) m.get("systemSchemaFilter"));
                 types.add(ct);
             }
             config.setCustomTypes(types);
@@ -216,6 +243,12 @@ public class ConfigManager {
                 m.put("driver", ct.getDriver());
                 m.put("urlTemplate", ct.getUrlTemplate());
                 if (ct.getDefaultPort() != null) m.put("defaultPort", ct.getDefaultPort());
+                if (ct.getLimitSuffix() != null) m.put("limitSuffix", ct.getLimitSuffix());
+                if (ct.getLimitPrefix() != null) m.put("limitPrefix", ct.getLimitPrefix());
+                if (ct.getLimitPattern() != null) m.put("limitPattern", ct.getLimitPattern());
+                if (ct.getDatabaseLabel() != null) m.put("databaseLabel", ct.getDatabaseLabel());
+                if (ct.getListDatabasesMethod() != null) m.put("listDatabasesMethod", ct.getListDatabasesMethod());
+                if (ct.getSystemSchemaFilter() != null) m.put("systemSchemaFilter", ct.getSystemSchemaFilter());
                 types.add(m);
             }
             map.put("customTypes", types);

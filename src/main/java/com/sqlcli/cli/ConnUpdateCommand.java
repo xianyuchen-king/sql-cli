@@ -73,12 +73,7 @@ public class ConnUpdateCommand implements Runnable {
         if (safetyLevel != null) cc.setSafetyLevel(safetyLevel);
 
         if (password != null) {
-            try {
-                cc.setPassword(cm.getEncryptionService().encrypt(password));
-            } catch (Exception e) {
-                System.err.println("[WARN] Failed to encrypt password: " + e.getMessage());
-                cc.setPassword(password);
-            }
+            cc.setPassword(ConfigManager.tryEncryptWithWarning(cm, password));
         }
 
         // Handle rename

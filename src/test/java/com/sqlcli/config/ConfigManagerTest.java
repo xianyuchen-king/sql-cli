@@ -147,4 +147,67 @@ class ConfigManagerTest {
         AppConfig second = cm.load();
         assertSame(first, second);
     }
+
+    @Test
+    void saveAndLoad_preservesAllCustomTypeFields() {
+        AppConfig config = new AppConfig();
+        CustomTypeConfig ct = new CustomTypeConfig();
+        ct.setName("dm");
+        ct.setDriverClass("dm.jdbc.driver.DmDriver");
+        ct.setDriver("DmJdbcDriver18.jar");
+        ct.setUrlTemplate("jdbc:dm://{host}:{port}/{db}");
+        ct.setDefaultPort(5236);
+        ct.setLimitSuffix(" LIMIT ?");
+        ct.setLimitPrefix("SELECT * FROM (");
+        ct.setLimitPattern(".*LIMIT\\s+\\d+.*");
+        ct.setDatabaseLabel("Schema");
+        ct.setListDatabasesMethod("getSchemas");
+        ct.setSystemSchemaFilter("^(SYS|DBA)");
+        config.setCustomTypes(java.util.List.of(ct));
+
+        cm.save(config);
+
+        ConfigManager cm2 = new ConfigManager(tempDir.toString());
+        AppConfig loaded = cm2.load();
+        assertEquals(1, loaded.getCustomTypes().size());
+        CustomTypeConfig loadedCt = loaded.getCustomTypes().get(0);
+        assertEquals("dm", loadedCt.getName());
+        assertEquals("dm.jdbc.driver.DmDriver", loadedCt.getDriverClass());
+        assertEquals("DmJdbcDriver18.jar", loadedCt.getDriver());
+        assertEquals("jdbc:dm://{host}:{port}/{db}", loadedCt.getUrlTemplate());
+        assertEquals(5236, loadedCt.getDefaultPort());
+        assertEquals(" LIMIT ?", loadedCt.getLimitSuffix());
+        assertEquals("SELECT * FROM (", loadedCt.getLimitPrefix());
+        assertEquals(".*LIMIT\\s+\\d+.*", loadedCt.getLimitPattern());
+        assertEquals("Schema", loadedCt.getDatabaseLabel());
+        assertEquals("getSchemas", loadedCt.getListDatabasesMethod());
+        assertEquals("^(SYS|DBA)", loadedCt.getSystemSchemaFilter());
+    }
+
+    @Test
+    void load_backwardCompat_noDialectFields() {
+        AppConfig config = new AppConfig();
+        CustomTypeConfig ct = new CustomTypeConfig();
+        ct.setName("dm");
+        ct.setDriverClass("dm.jdbc.driver.DmDriver");
+        ct.setDriver("DmJdbcDriver18.jar");
+        ct.setUrlTemplate("jdbc:dm://{host}:{port}/{db}");
+        ct.setDefaultPort(5236);
+        config.setCustomTypes(java.util.List.of(ct));
+
+        cm.save(config);
+
+        ConfigManager cm2 = new ConfigManager(tempDir.toString());
+        AppConfig loaded = cm2.load();
+        assertEquals(1, loaded.getCustomTypes().size());
+        CustomTypeConfig loadedCt = loaded.getCustomTypes().get(0);
+        assertEquals("dm", loadedCt.getName());
+        assertEquals(5236, loadedCt.getDefaultPort());
+        assertNull(loadedCt.getLimitSuffix());
+        assertNull(loadedCt.getLimitPrefix());
+        assertNull(loadedCt.getLimitPattern());
+        assertNull(loadedCt.getDatabaseLabel());
+        assertNull(loadedCt.getListDatabasesMethod());
+        assertNull(loadedCt.getSystemSchemaFilter());
+    }
 }

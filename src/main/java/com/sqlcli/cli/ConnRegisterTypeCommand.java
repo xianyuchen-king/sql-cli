@@ -27,6 +27,24 @@ public class ConnRegisterTypeCommand implements Runnable {
     @Option(names = {"--default-port"}, type = Integer.class, description = "Default port")
     private Integer defaultPort;
 
+    @Option(names = {"--limit-suffix"}, description = "SQL LIMIT suffix template, e.g., ' LIMIT {n}'")
+    private String limitSuffix;
+
+    @Option(names = {"--limit-prefix"}, description = "SQL LIMIT prefix template, e.g., 'TOP {n} '")
+    private String limitPrefix;
+
+    @Option(names = {"--limit-pattern"}, description = "Regex to detect existing LIMIT clause")
+    private String limitPattern;
+
+    @Option(names = {"--database-label"}, description = "Label for databases/schemas (default: Database)")
+    private String databaseLabel;
+
+    @Option(names = {"--list-databases-method"}, description = "Method to list databases: catalogs or schemas")
+    private String listDatabasesMethod;
+
+    @Option(names = {"--system-schema-filter"}, description = "Comma-separated system schema filter")
+    private String systemSchemaFilter;
+
     @Override
     public void run() {
         ConfigManager cm = new ConfigManager();
@@ -44,6 +62,12 @@ public class ConnRegisterTypeCommand implements Runnable {
         ct.setDriverClass(driverClass);
         ct.setUrlTemplate(urlTemplate);
         ct.setDefaultPort(defaultPort);
+        ct.setLimitSuffix(limitSuffix);
+        ct.setLimitPrefix(limitPrefix);
+        ct.setLimitPattern(limitPattern);
+        ct.setDatabaseLabel(databaseLabel);
+        ct.setListDatabasesMethod(listDatabasesMethod);
+        ct.setSystemSchemaFilter(systemSchemaFilter);
 
         if (config.getCustomTypes() == null) {
             config.setCustomTypes(new ArrayList<>());

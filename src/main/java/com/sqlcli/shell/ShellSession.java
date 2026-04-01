@@ -54,6 +54,8 @@ public class ShellSession implements AutoCloseable {
         boolean autoLimit = appConfig.getDefaults().isAutoLimit();
 
         this.state = new ShellState(fmt, maxRows, autoLimit);
+        com.sqlcli.dialect.Dialect dialect = com.sqlcli.dialect.DialectFactory.getDialect(config.getType(), appConfig);
+        this.state.setDialect(dialect);
     }
 
     /**
