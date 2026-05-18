@@ -345,6 +345,15 @@ When `--format json` or `--format agent-json` is used, errors include a machine-
 4. **Auto row limit**: SELECT queries default to 500 rows max, use `--limit N` or `--no-limit` to override
 5. **Query timeout**: Use `--timeout` to prevent runaway queries
 6. **NEVER execute destructive SQL on production databases** without explicit user confirmation
+7. **Do not treat safety levels as sandboxing**: host agents must separately enforce command, file, and network permissions
+
+## Agent Sandbox And Approvals
+
+- `strict` / `normal` / `none` are SQL execution policies inside `sql-cli`, not agent sandboxes
+- They do not grant or revoke filesystem, shell, network, or OS permissions from the calling agent
+- Host-level sandboxing and command/file/network approvals must be enforced by the tool that launches `sql-cli`
+- `sql-cli` may still require SQL-level confirmation via `--confirm` or an interactive shell prompt
+- Even in `none` mode, destructive SQL should still require explicit human approval
 
 ## Supported Databases
 

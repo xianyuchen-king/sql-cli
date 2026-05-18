@@ -108,6 +108,16 @@ See [full documentation](skill/sql-cli-skill.md) for more details.
 
 sql-cli provides an AI Skill that enables AI coding agents like Claude Code, Cursor, and GitHub Copilot to use sql-cli directly.
 
+### Security Boundary
+
+The `strict`, `normal`, and `none` safety levels only control SQL execution policy inside `sql-cli`. They are not an AI-agent sandbox and they do not control filesystem, shell, network, or OS permissions.
+
+- `strict`: only `SELECT` and metadata queries
+- `normal`: blocks unsafe statements such as `DROP DATABASE` or `DELETE/UPDATE` without `WHERE`, and requires confirmation for dangerous statements such as `DROP TABLE`
+- `none`: disables SQL statement blocking/confirmation rules inside `sql-cli`, but does not remove other execution guards provided by the host tool
+
+When sql-cli is invoked by an AI agent, agent-level sandboxing and approvals must still come from the host agent/runtime. sql-cli may still ask for SQL-level confirmation such as `--confirm` or an interactive shell prompt, but command/file/network permissions must be enforced outside sql-cli.
+
 ### Install Skill
 
 ```bash

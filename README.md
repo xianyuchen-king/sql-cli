@@ -163,6 +163,16 @@ $ sql-cli query "SELECT id, name, email FROM users LIMIT 5" -c mydb
 
 sql-cli 提供了 AI Skill，可让 Claude Code、Cursor、GitHub Copilot 等 AI 编程助手直接使用 sql-cli 操作数据库。
 
+### 安全边界
+
+`strict`、`normal`、`none` 这三个 safety level 只控制 `sql-cli` 内部的 SQL 执行策略，不是 AI agent 的沙箱，也不会控制文件系统、shell、网络或操作系统权限。
+
+- `strict`：只允许 `SELECT` 和元数据查询
+- `normal`：拦截 `DROP DATABASE`、不带 `WHERE` 的 `DELETE/UPDATE` 等不安全语句，并对 `DROP TABLE` 等高风险操作要求确认
+- `none`：关闭 `sql-cli` 内部的 SQL 拦截/确认规则，但不等于移除宿主工具提供的其他执行保护
+
+当 AI agent 调用 `sql-cli` 时，agent 级别的 sandbox 和命令、文件、网络审批仍然必须由宿主 agent/runtime 负责。`sql-cli` 自身仍可能通过 `--confirm` 或交互式 shell 提示来执行 SQL 级确认，但这不属于 agent 权限治理。
+
 ### 安装 Skill
 
 ```bash
